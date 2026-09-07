@@ -1,0 +1,914 @@
+{
+  "schema_version": 1,
+  "game_id": "twro",
+  "built_at": "2026-09-02T11:17:31+08:00",
+  "source_signature": "sha256:ef8fd872ce05ec0080665101acf0e3edea5ece166dbfc912622d32d772d372d2",
+  "source_signature_scope": "加入建置中繼資料前的完整台版資料快照",
+  "source": "台版 RO 主程式 EFST、StateIcon 與同名物品資料",
+  "scope": "狀態效果分類，不代表背包物品清單",
+  "records": {
+    "241": {
+      "id": 241,
+      "name": "STR提升",
+      "category": "消耗品",
+      "consumable_subcategory": "料理／能力值",
+      "efst_code": "EFST_FOOD_STR",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "242": {
+      "id": 242,
+      "name": "AGI提升",
+      "category": "消耗品",
+      "consumable_subcategory": "料理／能力值",
+      "efst_code": "EFST_FOOD_AGI",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "243": {
+      "id": 243,
+      "name": "VIT提升",
+      "category": "消耗品",
+      "consumable_subcategory": "料理／能力值",
+      "efst_code": "EFST_FOOD_VIT",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "244": {
+      "id": 244,
+      "name": "DEX提升",
+      "category": "消耗品",
+      "consumable_subcategory": "料理／能力值",
+      "efst_code": "EFST_FOOD_DEX",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "245": {
+      "id": 245,
+      "name": "INT提升",
+      "category": "消耗品",
+      "consumable_subcategory": "料理／能力值",
+      "efst_code": "EFST_FOOD_INT",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "246": {
+      "id": 246,
+      "name": "LUK提升",
+      "category": "消耗品",
+      "consumable_subcategory": "料理／能力值",
+      "efst_code": "EFST_FOOD_LUK",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "247": {
+      "id": 247,
+      "name": "迴避率提升",
+      "category": "消耗品",
+      "consumable_subcategory": "料理／能力值",
+      "efst_code": "EFST_FOOD_BASICAVOIDANCE",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "248": {
+      "id": 248,
+      "name": "命中率提升",
+      "category": "消耗品",
+      "consumable_subcategory": "料理／能力值",
+      "efst_code": "EFST_FOOD_BASICHIT",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "249": {
+      "id": 249,
+      "name": "必殺攻擊率提升",
+      "category": "消耗品",
+      "consumable_subcategory": "料理／能力值",
+      "efst_code": "EFST_FOOD_CRITICALSUCCESSVALUE",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "271": {
+      "id": 271,
+      "name": "STR提升",
+      "category": "消耗品",
+      "consumable_subcategory": "料理／能力值",
+      "efst_code": "EFST_FOOD_STR_CASH",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "272": {
+      "id": 272,
+      "name": "AGI提升",
+      "category": "消耗品",
+      "consumable_subcategory": "料理／能力值",
+      "efst_code": "EFST_FOOD_AGI_CASH",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "273": {
+      "id": 273,
+      "name": "VIT提升",
+      "category": "消耗品",
+      "consumable_subcategory": "料理／能力值",
+      "efst_code": "EFST_FOOD_VIT_CASH",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "274": {
+      "id": 274,
+      "name": "DEX提升",
+      "category": "消耗品",
+      "consumable_subcategory": "料理／能力值",
+      "efst_code": "EFST_FOOD_DEX_CASH",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "275": {
+      "id": 275,
+      "name": "INT提升",
+      "category": "消耗品",
+      "consumable_subcategory": "料理／能力值",
+      "efst_code": "EFST_FOOD_INT_CASH",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "276": {
+      "id": 276,
+      "name": "LUK提升",
+      "category": "消耗品",
+      "consumable_subcategory": "料理／能力值",
+      "efst_code": "EFST_FOOD_LUK_CASH",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "491": {
+      "id": 491,
+      "name": "烤小野豬排",
+      "category": "消耗品",
+      "consumable_subcategory": "料理／能力值",
+      "efst_code": "EFST_SAVAGE_STEAK",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "492": {
+      "id": 492,
+      "name": "雞尾酒狼血",
+      "category": "消耗品",
+      "consumable_subcategory": "料理／能力值",
+      "efst_code": "EFST_COCKTAIL_WARG_BLOOD",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "493": {
+      "id": 493,
+      "name": "米洛斯燒烤",
+      "category": "消耗品",
+      "consumable_subcategory": "料理／能力值",
+      "efst_code": "EFST_MINOR_BBQ",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "494": {
+      "id": 494,
+      "name": "小雪獸冰茶",
+      "category": "消耗品",
+      "consumable_subcategory": "料理／能力值",
+      "efst_code": "EFST_SIROMA_ICE_TEA",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "495": {
+      "id": 495,
+      "name": "捕蟲草藥草煎",
+      "category": "消耗品",
+      "consumable_subcategory": "料理／能力值",
+      "efst_code": "EFST_DROCERA_HERB_STEAMED",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "496": {
+      "id": 496,
+      "name": "畢帝特龍尾麵",
+      "category": "消耗品",
+      "consumable_subcategory": "料理／能力值",
+      "efst_code": "EFST_PUTTI_TAILS_NOODLES",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "666": {
+      "id": 666,
+      "name": "神奇粉末",
+      "category": "消耗品",
+      "consumable_subcategory": "料理／能力值",
+      "efst_code": "EFST_MYSTICPOWDER",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "1034": {
+      "id": 1034,
+      "name": "終極料理",
+      "category": "消耗品",
+      "consumable_subcategory": "料理／能力值",
+      "efst_code": "EFST_ULTIMATECOOK",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "1509": {
+      "id": 1509,
+      "name": "特性增強藥劑",
+      "category": "消耗品",
+      "consumable_subcategory": "料理／能力值",
+      "efst_code": "EFST_C_BUFF_1",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "1512": {
+      "id": 1512,
+      "name": "靈巧的羽毛",
+      "category": "消耗品",
+      "consumable_subcategory": "料理／能力值",
+      "efst_code": "EFST_C_BUFF_4",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "295": {
+      "id": 295,
+      "name": "研磨劑",
+      "category": "消耗品",
+      "consumable_subcategory": "攻擊／魔法",
+      "efst_code": "EFST_CRITICALPERCENT",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "423": {
+      "id": 423,
+      "name": "教皇餅乾",
+      "category": "消耗品",
+      "consumable_subcategory": "攻擊／魔法",
+      "efst_code": "EFST_POPECOOKIE",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "579": {
+      "id": 579,
+      "name": "活性化藥水",
+      "category": "消耗品",
+      "consumable_subcategory": "攻擊／魔法",
+      "efst_code": "EFST_VITALIZE_POTION",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "611": {
+      "id": 611,
+      "name": "魔法糖果",
+      "category": "消耗品",
+      "consumable_subcategory": "攻擊／魔法",
+      "efst_code": "EFST_MAGIC_CANDY",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "658": {
+      "id": 658,
+      "name": "古代神靈平安符",
+      "category": "消耗品",
+      "consumable_subcategory": "攻擊／魔法",
+      "efst_code": "EFST_PHI_DEMON",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "663": {
+      "id": 663,
+      "name": "高級戰鬥靈藥",
+      "category": "消耗品",
+      "consumable_subcategory": "攻擊／魔法",
+      "efst_code": "EFST_GM_BATTLE2",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "664": {
+      "id": 664,
+      "name": "紅色狂暴藥水",
+      "category": "消耗品",
+      "consumable_subcategory": "攻擊／魔法",
+      "efst_code": "EFST_2011RWC_SCROLL",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "685": {
+      "id": 685,
+      "name": "萬能年糕",
+      "category": "消耗品",
+      "consumable_subcategory": "攻擊／魔法",
+      "efst_code": "EFST_ALMIGHTY",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "783": {
+      "id": 783,
+      "name": "紅燒牛小排",
+      "category": "消耗品",
+      "consumable_subcategory": "攻擊／魔法",
+      "efst_code": "EFST_BEEF_RIB_STEW",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "964": {
+      "id": 964,
+      "name": "強化藥水SC",
+      "category": "消耗品",
+      "consumable_subcategory": "攻擊／魔法",
+      "efst_code": "EFST_EP16_2_BUFF_SC",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "965": {
+      "id": 965,
+      "name": "強化藥水AC",
+      "category": "消耗品",
+      "consumable_subcategory": "攻擊／魔法",
+      "efst_code": "EFST_EP16_2_BUFF_AC",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "1065": {
+      "id": 1065,
+      "name": "極限藥水",
+      "category": "消耗品",
+      "consumable_subcategory": "攻擊／魔法",
+      "efst_code": "EFST_INFINITY_DRINK",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "1137": {
+      "id": 1137,
+      "name": "體型傷害增加",
+      "category": "消耗品",
+      "consumable_subcategory": "攻擊／魔法",
+      "efst_code": "EFST_FLOWER_LEAF4",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "1170": {
+      "id": 1170,
+      "name": "紅色藥草活化液",
+      "category": "消耗品",
+      "consumable_subcategory": "攻擊／魔法",
+      "efst_code": "EFST_ADD_ATK_DAMAGE",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "1171": {
+      "id": 1171,
+      "name": "藍色藥草活化液",
+      "category": "消耗品",
+      "consumable_subcategory": "攻擊／魔法",
+      "efst_code": "EFST_ADD_MATK_DAMAGE",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "1396": {
+      "id": 1396,
+      "name": "湯麵節-蝴蝶麵",
+      "category": "消耗品",
+      "consumable_subcategory": "攻擊／魔法",
+      "efst_code": "EFST_NOODLE_FES_1",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "1397": {
+      "id": 1397,
+      "name": "湯麵節-奶油鮮蝦義大利麵",
+      "category": "消耗品",
+      "consumable_subcategory": "攻擊／魔法",
+      "efst_code": "EFST_NOODLE_FES_2",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "1399": {
+      "id": 1399,
+      "name": "湯麵節-韓式宴會麵",
+      "category": "消耗品",
+      "consumable_subcategory": "攻擊／魔法",
+      "efst_code": "EFST_NOODLE_FES_4",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "1400": {
+      "id": 1400,
+      "name": "湯麵節-醬油拌麵",
+      "category": "消耗品",
+      "consumable_subcategory": "攻擊／魔法",
+      "efst_code": "EFST_NOODLE_FES_5",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "1469": {
+      "id": 1469,
+      "name": "蒙布朗蛋糕",
+      "category": "消耗品",
+      "consumable_subcategory": "攻擊／魔法",
+      "efst_code": "EFST_CONTENTS_11",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "1470": {
+      "id": 1470,
+      "name": "櫻花年糕",
+      "category": "消耗品",
+      "consumable_subcategory": "攻擊／魔法",
+      "efst_code": "EFST_CONTENTS_12",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "1472": {
+      "id": 1472,
+      "name": "豐滿花樹枝",
+      "category": "消耗品",
+      "consumable_subcategory": "攻擊／魔法",
+      "efst_code": "EFST_CONTENTS_14",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "1473": {
+      "id": 1473,
+      "name": "夏季韓式宴會麵",
+      "category": "消耗品",
+      "consumable_subcategory": "攻擊／魔法",
+      "efst_code": "EFST_CONTENTS_15",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "1474": {
+      "id": 1474,
+      "name": "香料烤魷魚",
+      "category": "消耗品",
+      "consumable_subcategory": "攻擊／魔法",
+      "efst_code": "EFST_CONTENTS_16",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "1475": {
+      "id": 1475,
+      "name": "甜甜西瓜布丁",
+      "category": "消耗品",
+      "consumable_subcategory": "攻擊／魔法",
+      "efst_code": "EFST_CONTENTS_17",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "1476": {
+      "id": 1476,
+      "name": "冰涼西瓜汁",
+      "category": "消耗品",
+      "consumable_subcategory": "攻擊／魔法",
+      "efst_code": "EFST_CONTENTS_18",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "1485": {
+      "id": 1485,
+      "name": "學術節米餅",
+      "category": "消耗品",
+      "consumable_subcategory": "攻擊／魔法",
+      "efst_code": "EFST_CONTENTS_27",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "1486": {
+      "id": 1486,
+      "name": "學術節奶油餅乾",
+      "category": "消耗品",
+      "consumable_subcategory": "攻擊／魔法",
+      "efst_code": "EFST_CONTENTS_28",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "1487": {
+      "id": 1487,
+      "name": "學術節即溶咖啡",
+      "category": "消耗品",
+      "consumable_subcategory": "攻擊／魔法",
+      "efst_code": "EFST_CONTENTS_29",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "1489": {
+      "id": 1489,
+      "name": "肉量加倍三明治",
+      "category": "消耗品",
+      "consumable_subcategory": "攻擊／魔法",
+      "efst_code": "EFST_CONTENTS_31",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "1490": {
+      "id": 1490,
+      "name": "暖胃香料紅酒",
+      "category": "消耗品",
+      "consumable_subcategory": "攻擊／魔法",
+      "efst_code": "EFST_CONTENTS_32",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "1514": {
+      "id": 1514,
+      "name": "沉甸甸的羽毛",
+      "category": "消耗品",
+      "consumable_subcategory": "攻擊／魔法",
+      "efst_code": "EFST_C_BUFF_6",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "37": {
+      "id": 37,
+      "name": "集中藥水",
+      "category": "消耗品",
+      "consumable_subcategory": "攻速／移速",
+      "efst_code": "EFST_ATTHASTE_POTION1",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "38": {
+      "id": 38,
+      "name": "覺醒藥水",
+      "category": "消耗品",
+      "consumable_subcategory": "攻速／移速",
+      "efst_code": "EFST_ATTHASTE_POTION2",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "39": {
+      "id": 39,
+      "name": "攻擊速度增加",
+      "category": "消耗品",
+      "consumable_subcategory": "攻速／移速",
+      "efst_code": "EFST_ATTHASTE_POTION3",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "41": {
+      "id": 41,
+      "name": "移動速度增加",
+      "category": "消耗品",
+      "consumable_subcategory": "攻速／移速",
+      "efst_code": "EFST_MOVHASTE_POTION",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "414": {
+      "id": 414,
+      "name": "阿卡拉傑油炸餅",
+      "category": "消耗品",
+      "consumable_subcategory": "攻速／移速",
+      "efst_code": "EFST_ACARAJE",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "647": {
+      "id": 647,
+      "name": "ASPD 強化藥水",
+      "category": "消耗品",
+      "consumable_subcategory": "攻速／移速",
+      "efst_code": "EFST_ATTHASTE_CASH",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "784": {
+      "id": 784,
+      "name": "紅燒豬小排",
+      "category": "消耗品",
+      "consumable_subcategory": "攻速／移速",
+      "efst_code": "EFST_PORK_RIB_STEW",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "963": {
+      "id": 963,
+      "name": "強化藥水SS",
+      "category": "消耗品",
+      "consumable_subcategory": "攻速／移速",
+      "efst_code": "EFST_EP16_2_BUFF_SS",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "1135": {
+      "id": 1135,
+      "name": "韓式宴會麵",
+      "category": "消耗品",
+      "consumable_subcategory": "攻速／移速",
+      "efst_code": "EFST_FLOWER_LEAF2",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "1398": {
+      "id": 1398,
+      "name": "湯麵節-番茄湯麵",
+      "category": "消耗品",
+      "consumable_subcategory": "攻速／移速",
+      "efst_code": "EFST_NOODLE_FES_3",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "1478": {
+      "id": 1478,
+      "name": "鹹奶油爆米花",
+      "category": "消耗品",
+      "consumable_subcategory": "攻速／移速",
+      "efst_code": "EFST_CONTENTS_20",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "1510": {
+      "id": 1510,
+      "name": "速度增強藥劑",
+      "category": "消耗品",
+      "consumable_subcategory": "攻速／移速",
+      "efst_code": "EFST_C_BUFF_2",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "1513": {
+      "id": 1513,
+      "name": "華麗的羽毛",
+      "category": "消耗品",
+      "consumable_subcategory": "攻速／移速",
+      "efst_code": "EFST_C_BUFF_5",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "290": {
+      "id": 290,
+      "name": "物理防禦藥水",
+      "category": "消耗品",
+      "consumable_subcategory": "防禦／抗性",
+      "efst_code": "EFST_PROTECT_DEF",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "291": {
+      "id": 291,
+      "name": "魔法防禦藥水",
+      "category": "消耗品",
+      "consumable_subcategory": "防禦／抗性",
+      "efst_code": "EFST_PROTECT_MDEF",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "296": {
+      "id": 296,
+      "name": "幻影的酒杯",
+      "category": "消耗品",
+      "consumable_subcategory": "防禦／抗性",
+      "efst_code": "EFST_PLUSAVOIDVALUE",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "301": {
+      "id": 301,
+      "name": "異常狀態抵抗藥水",
+      "category": "消耗品",
+      "consumable_subcategory": "防禦／抗性",
+      "efst_code": "EFST_TARGET_BLOOD",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "573": {
+      "id": 573,
+      "name": "穆拉水果",
+      "category": "消耗品",
+      "consumable_subcategory": "防禦／抗性",
+      "efst_code": "EFST_MORA_BUFF",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "892": {
+      "id": 892,
+      "name": "櫻花糯米糕",
+      "category": "消耗品",
+      "consumable_subcategory": "防禦／抗性",
+      "efst_code": "EFST_CHERRY_BLOSSOM_CAKE",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "1169": {
+      "id": 1169,
+      "name": "黃金抵抗藥水",
+      "category": "消耗品",
+      "consumable_subcategory": "防禦／抗性",
+      "efst_code": "EFST_REF_T_POTION",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "292": {
+      "id": 292,
+      "name": "恢復力提升藥水",
+      "category": "消耗品",
+      "consumable_subcategory": "HP／SP／恢復",
+      "efst_code": "EFST_HEALPLUS",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "293": {
+      "id": 293,
+      "name": "小型生命水",
+      "category": "消耗品",
+      "consumable_subcategory": "HP／SP／恢復",
+      "efst_code": "EFST_S_LIFEPOTION",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "294": {
+      "id": 294,
+      "name": "中型生命水",
+      "category": "消耗品",
+      "consumable_subcategory": "HP／SP／恢復",
+      "efst_code": "EFST_L_LIFEPOTION",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "300": {
+      "id": 300,
+      "name": "SP 消耗量減少藥水",
+      "category": "消耗品",
+      "consumable_subcategory": "HP／SP／恢復",
+      "efst_code": "EFST_ATKER_BLOOD",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "480": {
+      "id": 480,
+      "name": "HP 增加藥水",
+      "category": "消耗品",
+      "consumable_subcategory": "HP／SP／恢復",
+      "efst_code": "EFST_PROMOTE_HEALTH_RESERCH",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "481": {
+      "id": 481,
+      "name": "SP 增加藥水",
+      "category": "消耗品",
+      "consumable_subcategory": "HP／SP／恢復",
+      "efst_code": "EFST_ENERGY_DRINK_RESERCH",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "670": {
+      "id": 670,
+      "name": "神奇生命水",
+      "category": "消耗品",
+      "consumable_subcategory": "HP／SP／恢復",
+      "efst_code": "EFST_M_LIFEPOTION",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "995": {
+      "id": 995,
+      "name": "小型魔力藥水",
+      "category": "消耗品",
+      "consumable_subcategory": "HP／SP／恢復",
+      "efst_code": "EFST_S_MANAPOTION",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "1136": {
+      "id": 1136,
+      "name": "香噴噴奶油麵條",
+      "category": "消耗品",
+      "consumable_subcategory": "HP／SP／恢復",
+      "efst_code": "EFST_FLOWER_LEAF3",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "1471": {
+      "id": 1471,
+      "name": "甜甜可麗餅",
+      "category": "消耗品",
+      "consumable_subcategory": "HP／SP／恢復",
+      "efst_code": "EFST_CONTENTS_13",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "1477": {
+      "id": 1477,
+      "name": "冰涼紅豆剉冰",
+      "category": "消耗品",
+      "consumable_subcategory": "HP／SP／恢復",
+      "efst_code": "EFST_CONTENTS_19",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "1491": {
+      "id": 1491,
+      "name": "暖心蛋酒",
+      "category": "消耗品",
+      "consumable_subcategory": "HP／SP／恢復",
+      "efst_code": "EFST_CONTENTS_33",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "1511": {
+      "id": 1511,
+      "name": "穩重的羽毛",
+      "category": "消耗品",
+      "consumable_subcategory": "HP／SP／恢復",
+      "efst_code": "EFST_C_BUFF_3",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "370": {
+      "id": 370,
+      "name": "獸人英雄卷軸",
+      "category": "消耗品",
+      "consumable_subcategory": "技能卷軸",
+      "efst_code": "EFST_MVPCARD_ORCHERO",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "388": {
+      "id": 388,
+      "name": "STR提升",
+      "category": "消耗品",
+      "consumable_subcategory": "技能卷軸",
+      "efst_code": "EFST_STR_SCROLL",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "389": {
+      "id": 389,
+      "name": "INT提升",
+      "category": "消耗品",
+      "consumable_subcategory": "技能卷軸",
+      "efst_code": "EFST_INT_SCROLL",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "996": {
+      "id": 996,
+      "name": "力量防護卷軸",
+      "category": "消耗品",
+      "consumable_subcategory": "技能卷軸",
+      "efst_code": "EFST_M_DEFSCROLL",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "1584": {
+      "id": 1584,
+      "name": "技能傷害減少卷軸",
+      "category": "消耗品",
+      "consumable_subcategory": "技能卷軸",
+      "efst_code": "EFST_OVERSEA_BUFF_01",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "1585": {
+      "id": 1585,
+      "name": "技能傷害減少卷軸",
+      "category": "消耗品",
+      "consumable_subcategory": "技能卷軸",
+      "efst_code": "EFST_OVERSEA_BUFF_02",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "1586": {
+      "id": 1586,
+      "name": "技能傷害減少卷軸",
+      "category": "消耗品",
+      "consumable_subcategory": "技能卷軸",
+      "efst_code": "EFST_OVERSEA_BUFF_03",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "345": {
+      "id": 345,
+      "name": "狂笑之毒",
+      "category": "消耗品",
+      "consumable_subcategory": "毒藥／負面效果",
+      "efst_code": "EFST_MAGICMUSHROOM",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    },
+    "348": {
+      "id": 348,
+      "name": "失憶之毒",
+      "category": "消耗品",
+      "consumable_subcategory": "毒藥／負面效果",
+      "efst_code": "EFST_OBLIVIONCURSE",
+      "evidence": "RO 主程式 EFST、StateIcon 名稱與效果說明",
+      "review_status": "confirmed_from_client_data"
+    }
+  },
+  "statistics": {
+    "record_count": 99,
+    "subcategory_counts": {
+      "料理／能力值": 25,
+      "攻擊／魔法": 32,
+      "攻速／移速": 13,
+      "防禦／抗性": 7,
+      "HP／SP／恢復": 13,
+      "技能卷軸": 7,
+      "毒藥／負面效果": 2
+    }
+  }
+}

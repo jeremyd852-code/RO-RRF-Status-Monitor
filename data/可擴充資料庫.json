@@ -1,0 +1,279 @@
+{
+  "schema_version": 1,
+  "description": "可攜式擴充資料；只載入 review_status 為 confirmed 的資料。",
+  "categories": {
+    "statuses": [
+      "技能",
+      "消耗品",
+      "BUFF",
+      "DEBUFF",
+      "掉寶",
+      "經驗",
+      "其他"
+    ],
+    "items": [
+      "消耗品",
+      "料理",
+      "經驗",
+      "掉寶",
+      "其他"
+    ],
+    "pets": [
+      "寵物"
+    ],
+    "pet_food_item_ids": [
+      "寵物食物"
+    ]
+  },
+  "records": {
+    "statuses": {
+      "12": {
+        "id": 12,
+        "review_status": "confirmed",
+        "category": "技能",
+        "name": "加速術",
+        "observed_names": [
+          "加速術",
+          "加速術(Increase agility)"
+        ]
+      },
+      "717": {
+        "id": 717,
+        "review_status": "confirmed",
+        "category": "技能",
+        "name": "終極念力",
+        "observed_names": [
+          "終極念力"
+        ]
+      },
+      "1481": {
+        "id": 1481,
+        "review_status": "confirmed",
+        "category": "BUFF",
+        "name": "增益BUFF",
+        "observed_names": [
+          "增益BUFF"
+        ]
+      },
+      "1482": {
+        "id": 1482,
+        "review_status": "confirmed",
+        "category": "BUFF",
+        "name": "增益BUFF",
+        "observed_names": [
+          "增益BUFF"
+        ]
+      },
+      "1483": {
+        "id": 1483,
+        "review_status": "confirmed",
+        "category": "BUFF",
+        "name": "增益BUFF",
+        "observed_names": [
+          "增益BUFF"
+        ]
+      },
+      "1494": {
+        "id": 1494,
+        "review_status": "confirmed",
+        "category": "其他",
+        "name": "EFST_CONTENTS_36",
+        "observed_names": [
+          "EFST_CONTENTS_36"
+        ]
+      },
+      "1495": {
+        "id": 1495,
+        "review_status": "confirmed",
+        "category": "BUFF",
+        "name": "賦予次元魔力抗性 (1階段)",
+        "observed_names": [
+          "賦予次元魔力抗性 (1階段)"
+        ]
+      },
+      "1496": {
+        "id": 1496,
+        "review_status": "confirmed",
+        "category": "BUFF",
+        "name": "賦予次元魔力抗性 (2階段)",
+        "observed_names": [
+          "賦予次元魔力抗性 (2階段)"
+        ]
+      },
+      "1497": {
+        "id": 1497,
+        "review_status": "confirmed",
+        "category": "其他",
+        "name": "EFST_CONTENTS_39",
+        "observed_names": [
+          "EFST_CONTENTS_39"
+        ]
+      },
+      "1524": {
+        "id": 1524,
+        "review_status": "confirmed",
+        "category": "BUFF",
+        "name": "美味Buff",
+        "observed_names": [
+          "美味Buff"
+        ]
+      },
+      "1525": {
+        "id": 1525,
+        "review_status": "confirmed",
+        "category": "BUFF",
+        "name": "新鮮Buff",
+        "observed_names": [
+          "新鮮Buff"
+        ]
+      }
+    },
+    "items": {
+      "1100004": {
+        "id": 1100004,
+        "review_status": "confirmed",
+        "category": "消耗品",
+        "name": "濃縮藍色糖漿藥水",
+        "observed_names": [
+          "濃縮藍色糖漿藥水"
+        ]
+      },
+      "1100005": {
+        "id": 1100005,
+        "review_status": "confirmed",
+        "category": "消耗品",
+        "name": "濃縮金色糖漿藥水",
+        "observed_names": [
+          "濃縮金色糖漿藥水"
+        ]
+      },
+      "12427": {
+        "id": 12427,
+        "review_status": "confirmed",
+        "category": "消耗品",
+        "name": "SP增加藥水(大)",
+        "observed_names": [
+          "SP增加藥水(大)"
+        ]
+      },
+      "12437": {
+        "id": 12437,
+        "review_status": "confirmed",
+        "category": "消耗品",
+        "name": "攻速增加濃縮汁",
+        "observed_names": [
+          "攻速增加濃縮汁"
+        ]
+      },
+      "12561": {
+        "id": 12561,
+        "review_status": "confirmed",
+        "category": "消耗品",
+        "name": "神奇種子",
+        "observed_names": [
+          "神奇種子"
+        ]
+      },
+      "12920": {
+        "id": 12920,
+        "review_status": "confirmed",
+        "category": "消耗品",
+        "name": "濃縮鋁箱子",
+        "observed_names": [
+          "濃縮鋁箱子"
+        ]
+      },
+      "14840": {
+        "id": 14840,
+        "review_status": "confirmed",
+        "category": "其他",
+        "name": "擴音器[轉蛋專用]",
+        "observed_names": [
+          "擴音器[轉蛋專用]"
+        ]
+      },
+      "14844": {
+        "id": 14844,
+        "review_status": "confirmed",
+        "category": "消耗品",
+        "name": "隨地倉庫使用券[轉蛋專用]",
+        "observed_names": [
+          "隨地倉庫使用券[轉蛋專用]"
+        ]
+      },
+      "22985": {
+        "id": 22985,
+        "review_status": "confirmed",
+        "category": "料理",
+        "name": "羅勒",
+        "observed_names": [
+          "羅勒"
+        ]
+      },
+      "23288": {
+        "id": 23288,
+        "review_status": "confirmed",
+        "category": "消耗品",
+        "name": "輕量蒼蠅翅膀",
+        "observed_names": [
+          "輕量蒼蠅翅膀"
+        ]
+      },
+      "512": {
+        "id": 512,
+        "review_status": "confirmed",
+        "category": "消耗品",
+        "name": "蘋果",
+        "observed_names": [
+          "蘋果"
+        ]
+      },
+      "611": {
+        "id": 611,
+        "review_status": "confirmed",
+        "category": "消耗品",
+        "name": "放大鏡",
+        "observed_names": [
+          "放大鏡"
+        ]
+      },
+      "643": {
+        "id": 643,
+        "review_status": "confirmed",
+        "category": "消耗品",
+        "name": "攜帶用孵蛋器",
+        "observed_names": [
+          "攜帶用孵蛋器"
+        ]
+      }
+    },
+    "pets": {
+      "1167": {
+        "id": 1167,
+        "review_status": "confirmed",
+        "category": "寵物",
+        "name": "savage_babe",
+        "observed_names": [
+          "savage_babe"
+        ]
+      }
+    },
+    "pet_food_item_ids": {
+      "512": {
+        "id": 512,
+        "review_status": "confirmed",
+        "category": "寵物食物"
+      },
+      "537": {
+        "id": 537,
+        "review_status": "confirmed",
+        "category": "寵物食物"
+      }
+    }
+  },
+  "game_id": "twro",
+  "locale": "zh-TW",
+  "built_at": "2026-09-02T17:16:42+08:00",
+  "source_signature": "sha256:2d2c0f075629ece108e54afe858f107a6548de4bf55352193eb06b5db45be4ab",
+  "source_signature_scope": "加入建置中繼資料前的已確認台版資料快照"
+}

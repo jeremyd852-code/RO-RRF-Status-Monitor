@@ -1,0 +1,1115 @@
+{
+  "schema_version": 1,
+  "game_id": "twro",
+  "source": "台版 RO 客戶端 petinfo.lub 的 PetStringTable／PetFoodTable；食物名稱以 iteminfo_new.lub identifiedDisplayName 核對。",
+  "sources": {
+    "jobidentity": {
+      "archive": "data.grf",
+      "entry": "data/luafiles514/lua files/datainfo/jobidentity.lub",
+      "sha256": "038a596f1dac3e8555c75bdced3814766e151a6143bc0d18f4832bb570a06695",
+      "bytes": 225524
+    },
+    "petinfo": {
+      "archive": "data.grf",
+      "entry": "data/luafiles514/lua files/datainfo/petinfo.lub",
+      "sha256": "93742569d80026b4bceba4bf2982a29c5a4a52c30a7f7ce435231a1426efa620",
+      "bytes": 53477
+    },
+    "iteminfo": {
+      "file": "System/iteminfo_new.lub",
+      "sha256": "adcdad0014c577cbd4b49eadc97fda8119272bf0749d1b2f1f4d36b828173b29",
+      "bytes": 9172059
+    }
+  },
+  "counts": {
+    "species": 115,
+    "chinese_species_names": 99,
+    "explicit_food_mappings": 114,
+    "chinese_food_names": 113,
+    "unique_food_item_ids": 58
+  },
+  "unresolved_species_keys_excluded": {
+    "PetStringTable": 1,
+    "PetFoodTable": 1,
+    "PetNameTable": 1
+  },
+  "notes": [
+    "種類 ID 與食物 ID 直接依客戶端原始數字鍵對應，不由食物集合或英文字碼推測。",
+    "NONAME、空白、無中文或無有效種類 ID 的項目不充當中文名稱；缺漏以 null 表示。",
+    "這是客戶端對照，不表示所有種類已在台版伺服器開放取得。",
+    "人物名稱、寵物暱稱、RRF、能力、進化及親密階段不包含於此資料。"
+  ],
+  "pets": {
+    "1002": {
+      "name_zh": "波利",
+      "food_item_id": 531,
+      "food_name_zh": "蘋果汁",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "1004": {
+      "name_zh": "蜂兵",
+      "food_item_id": 6108,
+      "food_name_zh": "蘋果布丁",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "1005": {
+      "name_zh": "吸血蝙蝠",
+      "food_item_id": 1000889,
+      "food_name_zh": "綜合鮮果汁",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "1010": {
+      "name_zh": "樹精",
+      "food_item_id": 1066,
+      "food_name_zh": "天地樹枝",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "1011": {
+      "name_zh": "蒼蠅",
+      "food_item_id": 537,
+      "food_name_zh": "寵物飼料",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "1014": {
+      "name_zh": "魔菇",
+      "food_item_id": 537,
+      "food_name_zh": "寵物飼料",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "1019": {
+      "name_zh": "大嘴鳥",
+      "food_item_id": 537,
+      "food_name_zh": "寵物飼料",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "1023": {
+      "name_zh": "獸人戰士",
+      "food_item_id": 537,
+      "food_name_zh": "寵物飼料",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "1026": {
+      "name_zh": "僵屍",
+      "food_item_id": 537,
+      "food_name_zh": "寵物飼料",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "1029": {
+      "name_zh": "蛇女伊絲",
+      "food_item_id": 537,
+      "food_name_zh": "寵物飼料",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "1031": {
+      "name_zh": "波波利",
+      "food_item_id": 511,
+      "food_name_zh": "綠色藥草",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "1035": {
+      "name_zh": "赤蒼蠅",
+      "food_item_id": 716,
+      "food_name_zh": "紅色魔力礦石",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "1040": {
+      "name_zh": "巨石怪",
+      "food_item_id": 6111,
+      "food_name_zh": "神秘石",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "1041": {
+      "name_zh": "木乃伊",
+      "food_item_id": 934,
+      "food_name_zh": "亡者遺物",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "1042": {
+      "name_zh": "綠蒼蠅",
+      "food_item_id": 1002,
+      "food_name_zh": "鐵礦石",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "1049": {
+      "name_zh": "小雞",
+      "food_item_id": 507,
+      "food_name_zh": "紅色藥草",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "1052": {
+      "name_zh": "蝗蟲",
+      "food_item_id": 537,
+      "food_name_zh": "寵物飼料",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "1056": {
+      "name_zh": "狸貓",
+      "food_item_id": 537,
+      "food_name_zh": "寵物飼料",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "1057": {
+      "name_zh": "溜溜猴",
+      "food_item_id": 532,
+      "food_name_zh": "香蕉汁",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "1058": {
+      "name_zh": "重金屬蝗蟲",
+      "food_item_id": 537,
+      "food_name_zh": "寵物飼料",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "1063": {
+      "name_zh": "瘋兔",
+      "food_item_id": 534,
+      "food_name_zh": "紅蘿蔔汁",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "1077": {
+      "name_zh": "毒魔菇",
+      "food_item_id": 537,
+      "food_name_zh": "寵物飼料",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "1090": {
+      "name_zh": "波利之王",
+      "food_item_id": 537,
+      "food_name_zh": "寵物飼料",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "1096": {
+      "name_zh": "天使波利",
+      "food_item_id": 537,
+      "food_name_zh": "寵物飼料",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "1101": {
+      "name_zh": "小巴風特",
+      "food_item_id": 518,
+      "food_name_zh": "蜂蜜",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "1106": {
+      "name_zh": "沙漠之狼",
+      "food_item_id": 537,
+      "food_name_zh": "寵物飼料",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "1107": {
+      "name_zh": "沙漠幼狼",
+      "food_item_id": 537,
+      "food_name_zh": "寵物飼料",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "1109": {
+      "name_zh": "小惡魔",
+      "food_item_id": 711,
+      "food_name_zh": "芽苗",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "1110": {
+      "name_zh": "土人",
+      "food_item_id": 537,
+      "food_name_zh": "寵物飼料",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "1113": {
+      "name_zh": "土波利",
+      "food_item_id": 508,
+      "food_name_zh": "黃色藥草",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "1122": {
+      "name_zh": "刺刀哥布靈",
+      "food_item_id": 7821,
+      "food_name_zh": "淺綠色蘋果",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "1123": {
+      "name_zh": "鏈鎚哥布靈",
+      "food_item_id": 7821,
+      "food_name_zh": "淺綠色蘋果",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "1125": {
+      "name_zh": "榔頭哥布靈",
+      "food_item_id": 7821,
+      "food_name_zh": "淺綠色蘋果",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "1143": {
+      "name_zh": "傀儡娃娃",
+      "food_item_id": 6098,
+      "food_name_zh": "可口雪花",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "1148": {
+      "name_zh": "米杜沙",
+      "food_item_id": 6108,
+      "food_name_zh": "蘋果布丁",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "1155": {
+      "name_zh": "畢帝特地龍",
+      "food_item_id": 537,
+      "food_name_zh": "寵物飼料",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "1166": {
+      "name_zh": "野豬",
+      "food_item_id": 537,
+      "food_name_zh": "寵物飼料",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "1167": {
+      "name_zh": "小野豬",
+      "food_item_id": 537,
+      "food_name_zh": "寵物飼料",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "1170": {
+      "name_zh": "鬼女",
+      "food_item_id": 537,
+      "food_name_zh": "寵物飼料",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "1179": {
+      "name_zh": "白幽靈",
+      "food_item_id": 6100,
+      "food_name_zh": "陰森之黑暗",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "1180": {
+      "name_zh": "九尾狐",
+      "food_item_id": 25231,
+      "food_name_zh": "神秘瓷瓶",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "1188": {
+      "name_zh": "妖道",
+      "food_item_id": 537,
+      "food_name_zh": "寵物飼料",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "1198": {
+      "name_zh": "暗黑祭司",
+      "food_item_id": 1000552,
+      "food_name_zh": "紫光邪惡暗水",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "1200": {
+      "name_zh": "艾斯恩魔女",
+      "food_item_id": 929,
+      "food_name_zh": "不死心臟",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "1208": {
+      "name_zh": "邪骸浪人",
+      "food_item_id": 7824,
+      "food_name_zh": "靈魂酒",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "1213": {
+      "name_zh": "獸人戰士長",
+      "food_item_id": 537,
+      "food_name_zh": "寵物飼料",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "1214": {
+      "name_zh": "巧克猴",
+      "food_item_id": 537,
+      "food_name_zh": "寵物飼料",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "1242": {
+      "name_zh": "冰波利",
+      "food_item_id": 6534,
+      "food_name_zh": "水果聖代",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "1245": {
+      "name_zh": "聖誕哥布靈",
+      "food_item_id": 911,
+      "food_name_zh": "雪勒結晶",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "1269": {
+      "name_zh": "古鐘魔",
+      "food_item_id": 6111,
+      "food_name_zh": "神秘石",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "1275": {
+      "name_zh": "愛麗絲女僕",
+      "food_item_id": 504,
+      "food_name_zh": "白色藥水",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "1297": {
+      "name_zh": "狂暴木乃伊",
+      "food_item_id": 537,
+      "food_name_zh": "寵物飼料",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "1299": {
+      "name_zh": "哥布靈首領",
+      "food_item_id": 6104,
+      "food_name_zh": "巨大雪勒結晶",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "1301": {
+      "name_zh": "狂暴小土人",
+      "food_item_id": 537,
+      "food_name_zh": "寵物飼料",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "1307": {
+      "name_zh": "狂暴月夜貓",
+      "food_item_id": 537,
+      "food_name_zh": "寵物飼料",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "1369": {
+      "name_zh": "七彩大嘴鳥",
+      "food_item_id": 537,
+      "food_name_zh": "寵物飼料",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "1370": {
+      "name_zh": "惡魔女僕",
+      "food_item_id": 6113,
+      "food_name_zh": "靈氣之花",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "1374": {
+      "name_zh": "惡魔侍者",
+      "food_item_id": 6110,
+      "food_name_zh": "靈氣之花",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "1379": {
+      "name_zh": "七彩夢魘",
+      "food_item_id": 6112,
+      "food_name_zh": "新鮮植物",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "1382": {
+      "name_zh": "赤焰小惡魔",
+      "food_item_id": 7823,
+      "food_name_zh": "蔬菜燒烤肉串",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "1385": {
+      "name_zh": "七彩地龍",
+      "food_item_id": 7822,
+      "food_name_zh": "銋唾惇BBQ",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "1401": {
+      "name_zh": "火忍西怒畢",
+      "food_item_id": 6099,
+      "food_name_zh": "烤糯米糕",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "1404": {
+      "name_zh": "米雅畢",
+      "food_item_id": 6106,
+      "food_name_zh": "成熟草莓",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "1416": {
+      "name_zh": "妖仙女",
+      "food_item_id": 6105,
+      "food_name_zh": "晨露",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "1495": {
+      "name_zh": "石砲火樹",
+      "food_item_id": 6109,
+      "food_name_zh": "植物營養素",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "1504": {
+      "name_zh": "無顱武士",
+      "food_item_id": 6107,
+      "food_name_zh": "日落雞尾酒",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "1505": {
+      "name_zh": "銀月魔女",
+      "food_item_id": 6097,
+      "food_name_zh": "甜蜜的南瓜派",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "1512": {
+      "name_zh": "妖君",
+      "food_item_id": 537,
+      "food_name_zh": "寵物飼料",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "1513": {
+      "name_zh": "狐仙",
+      "food_item_id": 6095,
+      "food_name_zh": "花香美酒",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "1519": {
+      "name_zh": null,
+      "food_item_id": 6115,
+      "food_name_zh": "一口包子",
+      "name_source": null,
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": [
+        "name_zh"
+      ]
+    },
+    "1586": {
+      "name_zh": "群葉貓",
+      "food_item_id": 6096,
+      "food_name_zh": "青背魚",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "1622": {
+      "name_zh": "玩偶熊",
+      "food_item_id": 25233,
+      "food_name_zh": "棉花球",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "1630": {
+      "name_zh": "白素貞",
+      "food_item_id": 6094,
+      "food_name_zh": null,
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": null,
+      "missing_fields": [
+        "food_name_zh"
+      ]
+    },
+    "1631": {
+      "name_zh": "小青",
+      "food_item_id": 6115,
+      "food_name_zh": "一口包子",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "1632": {
+      "name_zh": "小妖精",
+      "food_item_id": 25232,
+      "food_name_zh": "廉價潤滑油",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "1735": {
+      "name_zh": "愛麗瑟",
+      "food_item_id": 537,
+      "food_name_zh": "寵物飼料",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "1736": {
+      "name_zh": "愛麗俄",
+      "food_item_id": 537,
+      "food_name_zh": "寵物飼料",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "1737": {
+      "name_zh": "愛麗莎",
+      "food_item_id": 537,
+      "food_name_zh": "寵物飼料",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "1754": {
+      "name_zh": "褐方體惡魔",
+      "food_item_id": 6105,
+      "food_name_zh": "晨露",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "1773": {
+      "name_zh": "異型",
+      "food_item_id": 537,
+      "food_name_zh": "寵物飼料",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "1782": {
+      "name_zh": "土狼",
+      "food_item_id": 7564,
+      "food_name_zh": "腐臭之肉",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "1815": {
+      "name_zh": "熱騰騰的糕餅",
+      "food_item_id": 511,
+      "food_name_zh": "綠色藥草",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "1837": {
+      "name_zh": "炙燄魔",
+      "food_item_id": 6114,
+      "food_name_zh": "火焰魔力礦石",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "1879": {
+      "name_zh": "可愛小玉兔",
+      "food_item_id": 7766,
+      "food_name_zh": "白菜葉",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "1963": {
+      "name_zh": "新年娃娃",
+      "food_item_id": 554,
+      "food_name_zh": "甜米糕",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "2200": {
+      "name_zh": null,
+      "food_item_id": 512,
+      "food_name_zh": "蘋果",
+      "name_source": null,
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": [
+        "name_zh"
+      ]
+    },
+    "2210": {
+      "name_zh": "聖誕小白兔",
+      "food_item_id": 529,
+      "food_name_zh": "糖果",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "2313": {
+      "name_zh": "邪魔馬",
+      "food_item_id": 528,
+      "food_name_zh": "魔物飼料",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "2336": {
+      "name_zh": null,
+      "food_item_id": null,
+      "food_name_zh": null,
+      "name_source": null,
+      "food_source": null,
+      "food_name_source": null,
+      "missing_fields": [
+        "name_zh",
+        "food_item_id",
+        "food_name_zh"
+      ]
+    },
+    "2398": {
+      "name_zh": "寶貝波利",
+      "food_item_id": 531,
+      "food_name_zh": "蘋果汁",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "2963": {
+      "name_zh": "小樹椿",
+      "food_item_id": 6669,
+      "food_name_zh": "翡翠綠葉",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "2995": {
+      "name_zh": "被遺棄的玩偶熊",
+      "food_item_id": 537,
+      "food_name_zh": "寵物飼料",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "3023": {
+      "name_zh": "火焰巨石怪",
+      "food_item_id": 537,
+      "food_name_zh": "寵物飼料",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "3162": {
+      "name_zh": "長鼻象",
+      "food_item_id": 6762,
+      "food_name_zh": "香蕉罐頭",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "3163": {
+      "name_zh": "金鋼猿",
+      "food_item_id": 6763,
+      "food_name_zh": "辣米糕",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "3164": {
+      "name_zh": "QQ獅",
+      "food_item_id": 6764,
+      "food_name_zh": "熱狗堡",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "3165": {
+      "name_zh": "肥肥犀牛",
+      "food_item_id": 6765,
+      "food_name_zh": "摩天輪餅乾",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "3306": {
+      "name_zh": null,
+      "food_item_id": 537,
+      "food_name_zh": "寵物飼料",
+      "name_source": null,
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": [
+        "name_zh"
+      ]
+    },
+    "3317": {
+      "name_zh": null,
+      "food_item_id": 537,
+      "food_name_zh": "寵物飼料",
+      "name_source": null,
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": [
+        "name_zh"
+      ]
+    },
+    "3318": {
+      "name_zh": null,
+      "food_item_id": 537,
+      "food_name_zh": "寵物飼料",
+      "name_source": null,
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": [
+        "name_zh"
+      ]
+    },
+    "3319": {
+      "name_zh": null,
+      "food_item_id": 537,
+      "food_name_zh": "寵物飼料",
+      "name_source": null,
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": [
+        "name_zh"
+      ]
+    },
+    "3320": {
+      "name_zh": null,
+      "food_item_id": 537,
+      "food_name_zh": "寵物飼料",
+      "name_source": null,
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": [
+        "name_zh"
+      ]
+    },
+    "3321": {
+      "name_zh": null,
+      "food_item_id": 537,
+      "food_name_zh": "寵物飼料",
+      "name_source": null,
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": [
+        "name_zh"
+      ]
+    },
+    "3349": {
+      "name_zh": null,
+      "food_item_id": 537,
+      "food_name_zh": "寵物飼料",
+      "name_source": null,
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": [
+        "name_zh"
+      ]
+    },
+    "3350": {
+      "name_zh": null,
+      "food_item_id": 537,
+      "food_name_zh": "寵物飼料",
+      "name_source": null,
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": [
+        "name_zh"
+      ]
+    },
+    "3351": {
+      "name_zh": null,
+      "food_item_id": 537,
+      "food_name_zh": "寵物飼料",
+      "name_source": null,
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": [
+        "name_zh"
+      ]
+    },
+    "3352": {
+      "name_zh": null,
+      "food_item_id": 537,
+      "food_name_zh": "寵物飼料",
+      "name_source": null,
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": [
+        "name_zh"
+      ]
+    },
+    "3353": {
+      "name_zh": null,
+      "food_item_id": 537,
+      "food_name_zh": "寵物飼料",
+      "name_source": null,
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": [
+        "name_zh"
+      ]
+    },
+    "3354": {
+      "name_zh": null,
+      "food_item_id": 537,
+      "food_name_zh": "寵物飼料",
+      "name_source": null,
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": [
+        "name_zh"
+      ]
+    },
+    "3355": {
+      "name_zh": null,
+      "food_item_id": 537,
+      "food_name_zh": "寵物飼料",
+      "name_source": null,
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": [
+        "name_zh"
+      ]
+    },
+    "3495": {
+      "name_zh": "蛋黃波利",
+      "food_item_id": 537,
+      "food_name_zh": "寵物飼料",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "3496": {
+      "name_zh": "群葉瘋兔",
+      "food_item_id": 537,
+      "food_name_zh": "寵物飼料",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "3904": {
+      "name_zh": "自由小鴨玩偶",
+      "food_item_id": 7189,
+      "food_name_zh": "樹木心臟",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "20571": {
+      "name_zh": "獸人英雄",
+      "food_item_id": 25377,
+      "food_name_zh": "高級寵物飼料",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    },
+    "23348": {
+      "name_zh": "黃肉食人火龍果",
+      "food_item_id": 537,
+      "food_name_zh": "寵物飼料",
+      "name_source": "petinfo.PetStringTable",
+      "food_source": "petinfo.PetFoodTable",
+      "food_name_source": "iteminfo.identifiedDisplayName",
+      "missing_fields": []
+    }
+  }
+}

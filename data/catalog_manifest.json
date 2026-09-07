@@ -1,0 +1,24 @@
+{
+  "app_version": "1.6.5",
+  "built_at": "2026-09-08T03:53:24+08:00",
+  "counts": {
+    "items": 5160,
+    "pet_food_item_ids": 58,
+    "pets": 110,
+    "statuses": 738
+  },
+  "files": {
+    "EFSTIDs.lua": "73c6e19971ee1d7d729880779c3ce77e2144adec7531c571691753db8a75a722",
+    "client_catalog.json": "50914fb2797870834c4ea3b56980b68b2fae12e0c3d0fd7562cc6040274a8cfd",
+    "job_skill_catalog.json": "0ff12f25fbf4c959896fdf6bbe36b3a0cacd46b4375637221b7c70e0a3ff73b5",
+    "job_status_index.json": "5c23307936c54d61d8ff9b09c289d1f77f9ee7213f58744ad141f3948e41d307",
+    "pet_catalog.json": "f11a67035faa89f8e44c1e56605aaec3cde3fe288dddea368b807f698d106e60",
+    "runtime_status_index.json": "fb725917997a68a8f787d12b323ec4703f2d1676bc63976cf8c050de013e1f65",
+    "stateiconinfo.lua": "8d2c278ed5f5f767004fc9dd6a9831f54c34ed0245397a03ad9467f9fd7be22e",
+    "status_catalog.json": "654607d64cc096275aa0172843a37a2af9dc3fd1ddf84792160670e98e457e4c",
+    "status_classification.json": "7bdb1bb2e0e3694f9a2d080462b0fa80b244b55457a50837b082be7ba6bcc9a2",
+    "可擴充資料庫.json": "584c1f67d61fc5a8fdd4d264582dad22e9c33bfe59d483d133b55b706c40ed88"
+  },
+  "game_id": "twro",
+  "schema_version": 1
+}

@@ -1,0 +1,2 @@
+# Preserve catalog bytes so manifest hashes survive checkout on every platform.
+* -text

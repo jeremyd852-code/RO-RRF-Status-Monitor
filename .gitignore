@@ -1,0 +1,24 @@
+dist/
+build/
+.venv/
+__pycache__/
+*.pyc
+*.rrf
+*.log
+*.bak
+*.tmp
+config*.json
+status_data_cache*.json
+client_data_cache*.json
+unknown_data_journal*.json
+
+# Local credentials, caches and distribution artifacts
+.env
+.env.*
+*.pem
+*.key
+*.backup
+.pytest_cache/
+*.zip
+*.exe
+*.lnk
