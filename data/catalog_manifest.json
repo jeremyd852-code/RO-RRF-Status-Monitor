@@ -1,6 +1,6 @@
 {
   "app_version": "1.6.6",
-  "built_at": "2026-09-08T15:50:52+08:00",
+  "built_at": "2026-09-08T16:53:25+08:00",
   "counts": {
     "items": 5160,
     "pet_food_item_ids": 58,
@@ -13,7 +13,7 @@
     "job_skill_catalog.json": "0ff12f25fbf4c959896fdf6bbe36b3a0cacd46b4375637221b7c70e0a3ff73b5",
     "job_status_index.json": "5c23307936c54d61d8ff9b09c289d1f77f9ee7213f58744ad141f3948e41d307",
     "pet_catalog.json": "f11a67035faa89f8e44c1e56605aaec3cde3fe288dddea368b807f698d106e60",
-    "runtime_status_index.json": "e0d3a343c1e404e5342ded282ab886317b29170b53ca88b5d428fed4b3b6282b",
+    "runtime_status_index.json": "2258a8a6554bfda3cb15e31a2a494570f56bcb2b8f5160b7db793c69cdaa2f42",
     "stateiconinfo.lua": "8d2c278ed5f5f767004fc9dd6a9831f54c34ed0245397a03ad9467f9fd7be22e",
     "status_catalog.json": "b843d5200d7952de21291e244efff5ad0e71379018995cc0f281f512123e72b4",
     "status_classification.json": "7bdb1bb2e0e3694f9a2d080462b0fa80b244b55457a50837b082be7ba6bcc9a2",

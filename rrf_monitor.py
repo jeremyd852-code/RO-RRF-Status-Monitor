@@ -3585,7 +3585,7 @@ class RrfMonitorApp(tk.Tk):
         self.overlay_render_signature: tuple[object, ...] | None = None
         self.overlay_structure_signature: tuple[object, ...] | None = None
         self.overlay_target_items: dict[int, int] = {}
-        self.overlay_row_items: dict[tuple[int, int], tuple[int, int, int, int]] = {}
+        self.overlay_row_items: dict[tuple[int, int], tuple[int, int, int, int, int]] = {}
         self.overlay_pet_items: dict[int, int] = {}
         self.overlay_target_text_limits: dict[int, int] = {}
         self.overlay_row_text_limits: dict[tuple[int, int], int] = {}
@@ -8749,7 +8749,7 @@ class RrfMonitorApp(tk.Tk):
 
     @staticmethod
     def shorten_overlay_text_pixels(text: str, font: tkfont.Font, max_pixels: int) -> str:
-        """依實際字型寬度截短文字，讓倒數能緊接在名稱後方。"""
+        """依實際字型寬度截短文字，保留倒數與分類的獨立欄位。"""
         value = str(text)
         limit = max(1, int(max_pixels))
         if font.measure(value) <= limit:
@@ -8782,6 +8782,27 @@ class RrfMonitorApp(tk.Tk):
         bold = tkfont.Font(root=canvas, font=('Microsoft JhengHei', self.overlay_font_size, 'bold'))
         self.overlay_font_cache = (self.overlay_font_size, regular, bold)
         return (regular, bold)
+
+    def overlay_time_presentation(self, text: str, max_pixels: int, bold_font: tkfont.Font) -> tuple[str, tuple[str, int, str], int]:
+        """窄卡必要時使用時:分:秒；只調整呈現，不省略時間或上次資料標記。"""
+        value = str(text)
+        size = self.overlay_font_size
+        spec = ('Microsoft JhengHei', size, 'bold')
+        if bold_font.measure(value) <= max_pixels:
+            return (value, spec, bold_font.measure(value))
+        compact = re.sub('(?:(\\d+)時)?(\\d+)分(\\d+)秒$', lambda match: ':'.join((part for part in match.groups() if part is not None)), value)
+        if bold_font.measure(compact) <= max_pixels:
+            return (compact, spec, bold_font.measure(compact))
+        cache = self.__dict__.setdefault('overlay_time_font_cache', {})
+        for fitted_size in range(size - 1, OVERLAY_MIN_FONT_SIZE - 1, -1):
+            font = cache.get(fitted_size)
+            if font is None:
+                font = tkfont.Font(root=self.overlay_canvas, font=('Microsoft JhengHei', fitted_size, 'bold'))
+                cache[fitted_size] = font
+            measured = font.measure(compact)
+            if measured <= max_pixels or fitted_size == OVERLAY_MIN_FONT_SIZE:
+                return (compact, ('Microsoft JhengHei', fitted_size, 'bold'), measured)
+        return (compact, spec, bold_font.measure(compact))
 
     def overlay_model_natural_height(self, groups: tuple[object, ...], pet: tuple[object, ...] | None) -> int:
         cards = self.overlay_card_models(groups, pet)
@@ -8819,28 +8840,28 @@ class RrfMonitorApp(tk.Tk):
                 target_item = self.overlay_target_items.get(int(target_id))
                 if target_item is not None:
                     canvas.itemconfigure(target_item, text=self.shorten_overlay_text_pixels(str(target_name), row_bold_font_measure, text_limit), fill=OVERLAY_TITLE_TEXT)
-                for state_key, name, remaining_text, level in rows:
+                for state_key, name, remaining_text, level, category in rows:
                     state_key = tuple(state_key)
                     items = self.overlay_row_items.get(state_key)
                     if items is None:
                         continue
-                    background_item, dot_item, name_item, time_item = items
-                    background_box = canvas.bbox(background_item)
+                    background_item, dot_item, name_item, time_item, category_item = items
                     name_coords = canvas.coords(name_item)
                     time_coords = canvas.coords(time_item)
                     name_x = name_coords[0] if name_coords else 22
-                    time_width = row_bold_font_measure.measure(str(remaining_text))
+                    time_x = time_coords[0] if time_coords else width - 72
+                    time_space = max(1, int(time_x - name_x - row_font_measure.measure('…') - 8))
+                    time_text, time_font, time_width = self.overlay_time_presentation(str(remaining_text), time_space, row_bold_font_measure)
                     row_text_limit = self.overlay_row_text_limits.get(state_key, max(20, width - 118))
-                    if background_box is not None and time_coords:
-                        time_x = time_coords[0]
-                        row_text_limit = max(20, int(time_x - name_x - time_width - 8))
-                        self.overlay_row_text_limits[state_key] = row_text_limit
+                    row_text_limit = min(row_text_limit, max(0, int(time_x - name_x - time_width - 8)))
+                    self.overlay_row_text_limits[state_key] = row_text_limit
                     dot_color, row_bg, foreground = self.overlay_light_colors(str(level))
                     canvas.itemconfigure(background_item, fill=row_bg)
                     canvas.itemconfigure(dot_item, fill=dot_color)
                     display_name = self.shorten_overlay_text_pixels(str(name), row_font_measure, row_text_limit)
                     canvas.itemconfigure(name_item, text=display_name, fill=foreground)
-                    canvas.itemconfigure(time_item, text=str(remaining_text), fill=foreground)
+                    canvas.itemconfigure(time_item, text=time_text, fill=foreground, font=time_font)
+                    canvas.itemconfigure(category_item, text=str(category), fill=foreground)
         pet = self.overlay_render_pet
         if pet is not None:
             pet_lines = self.overlay_pet_lines(pet)
@@ -8931,12 +8952,16 @@ class RrfMonitorApp(tk.Tk):
                 if content_top <= separator_y <= content_bottom:
                     canvas.create_line(card_left + 6, separator_y, card_right - 6, separator_y, fill=OVERLAY_SEPARATOR, tags='overlay_content')
                 row_y = card_top + target_header_height
-                for _state_key, name, remaining_text, level in rows:
+                for _state_key, name, remaining_text, level, category in rows:
                     state_key = tuple(_state_key)
                     name_x = card_left + 22
-                    time_x = card_right - 12
-                    time_width = row_bold_font_measure.measure(str(remaining_text))
-                    max_name_pixels = max(20, int(time_x - name_x - time_width - 8))
+                    category_x = card_right - 12
+                    category_width = row_font_measure.measure('待確認')
+                    time_x = category_x - category_width - 8
+                    time_space = max(1, int(time_x - name_x - row_font_measure.measure('…') - 8))
+                    time_text, time_font, time_width = self.overlay_time_presentation(str(remaining_text), time_space, row_bold_font_measure)
+                    time_reserve = min(time_space, max(time_width, row_bold_font_measure.measure('59秒')))
+                    max_name_pixels = max(0, int(time_x - name_x - time_reserve - 8))
                     self.overlay_row_text_limits[state_key] = max_name_pixels
                     display_name = self.shorten_overlay_text_pixels(str(name), row_font_measure, max_name_pixels)
                     row_center = row_y + status_row_height // 2
@@ -8945,8 +8970,9 @@ class RrfMonitorApp(tk.Tk):
                         background_item = self.draw_rounded_rectangle(canvas, card_left + 4, row_y, card_right - 4, row_y + status_row_height - 2, 1, fill=row_bg, outline='', tags='overlay_content')
                         dot_item = canvas.create_oval(card_left + 10, row_center - 3, card_left + 16, row_center + 3, fill=dot_color, outline='', tags='overlay_content')
                         name_item = canvas.create_text(name_x, row_center, text=display_name, fill=foreground, font=row_font_spec, anchor='w', tags='overlay_content')
-                        time_item = canvas.create_text(time_x, row_center, text=str(remaining_text), fill=foreground, font=row_bold_font_spec, anchor='e', tags='overlay_content')
-                        self.overlay_row_items[state_key] = (background_item, dot_item, name_item, time_item)
+                        time_item = canvas.create_text(time_x, row_center, text=time_text, fill=foreground, font=time_font, anchor='e', tags='overlay_content')
+                        category_item = canvas.create_text(category_x, row_center, text=str(category), fill=foreground, font=row_font_spec, anchor='e', tags='overlay_content')
+                        self.overlay_row_items[state_key] = (background_item, dot_item, name_item, time_item, category_item)
                     row_y += status_row_height
             else:
                 pet = payload
@@ -8988,7 +9014,7 @@ class RrfMonitorApp(tk.Tk):
         for scope in TARGET_SCOPE_ORDER:
             people: list[object] = []
             for target_id in sorted(grouped.get(scope, {})):
-                rendered_rows = tuple(((state.key, f'{effect_label(status_group(state.status_id, state.source_header))}｜{status_name(state.status_id, state.source_header)}' + (f'（{level_label(level)}）' if level in {'yellow', 'red'} else ''), ('上次 ' if level == 'stale' else '') + format_overlay_duration(remaining), level) for state, remaining, level in sorted(grouped[scope][target_id], key=lambda item: self.status_row_sort_key(item[0], item[1]))))
+                rendered_rows = tuple(((state.key, status_name(state.status_id, state.source_header) + (f'（{level_label(level)}）' if level in {'yellow', 'red'} else ''), ('上次 ' if level == 'stale' else '') + format_overlay_duration(remaining), level, {'buff': '增益', 'debuff': '減益', 'special': '特殊'}.get(effect_nature(status_group(state.status_id, state.source_header)), '待確認')) for state, remaining, level in sorted(grouped[scope][target_id], key=lambda item: self.status_row_sort_key(item[0], item[1]))))
                 people.append((target_id, self.target_display_name(target_id), rendered_rows))
             if people:
                 rendered_groups.append((scope, tuple(people)))
