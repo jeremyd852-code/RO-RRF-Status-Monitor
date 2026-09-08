@@ -26,12 +26,17 @@ def shorten_text(text: str, max_characters: int) -> str:
     return text[: max_characters - 1].rstrip() + "…"
 
 
+def remaining_seconds(milliseconds: int) -> int:
+    """所有正剩餘時間向上取整；不把不足一秒顯示成已到期。"""
+    return (max(0, int(milliseconds)) + 999) // 1000
+
+
 def format_overlay_duration(milliseconds: int | None) -> str:
     """把卡片倒數顯示成秒、分秒或時分秒。"""
 
     if milliseconds is None:
         return "生效中"
-    total_seconds = (max(0, int(milliseconds)) + 999) // 1000
+    total_seconds = remaining_seconds(milliseconds)
     hours, remainder = divmod(total_seconds, 3600)
     minutes, seconds = divmod(remainder, 60)
     if hours:

@@ -1,4 +1,4 @@
-"""Static integrity and privacy checks for the 1.6.5 portable package."""
+"""Static integrity and privacy checks for the portable package."""
 from __future__ import annotations
 import argparse
 import hashlib

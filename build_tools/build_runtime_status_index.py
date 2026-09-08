@@ -12,6 +12,8 @@ if str(ROOT) not in sys.path:
 
 import rrf_monitor
 from catalog.schema import now_iso, write_json_atomically
+from catalog.effect_reviews import load_effect_reviews
+from app.version import APP_VERSION
 
 
 def main() -> int:
@@ -54,10 +56,14 @@ def main() -> int:
             if str(record.get("display_name_override", "")).strip()
         }
     )
+    conflicts = load_effect_reviews(ROOT / "data").apply(names, groups)
+    for conflict in conflicts:
+        if conflict.status_id is not None:
+            groups[conflict.status_id] = "未分類"
     payload: dict[str, object] = {
         "schema_version": 1,
         "game_id": "twro",
-        "app_version": "1.6.5",
+        "app_version": APP_VERSION,
         "built_at": now_iso(),
         "names": {
             str(status_id): name
@@ -67,6 +73,7 @@ def main() -> int:
             str(status_id): group
             for status_id, group in sorted(groups.items())
         },
+        "review_conflicts": [vars(conflict) for conflict in conflicts],
     }
     write_json_atomically(destination, payload)
     print(

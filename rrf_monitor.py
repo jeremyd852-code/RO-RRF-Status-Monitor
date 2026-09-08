@@ -147,24 +147,26 @@ configure_tk_environment()
 from tkinter import filedialog, font as tkfont, messagebox, ttk
 from typing import BinaryIO, Callable, Iterable
 import tkinter as tk
-from monitor_ui.view_models import calculate_auto_height_geometry, compact_status_summary, format_overlay_duration, shorten_text
+from monitor_ui.view_models import calculate_auto_height_geometry, compact_status_summary, format_overlay_duration, remaining_seconds, shorten_text
 from monitor_ui.card_layout import arrange_card_heights
 from monitor_core.catalog import TWRO_GAME_ID, StatusLibraryRecord, StatusSearchIndex, bundled_catalog_is_twro, detect_ro_client, filter_status_records, paginate_status_ids, twro_install_message
-from monitor_core.alerts import expiration_level, expiration_phase, level_label, status_visual_level
+from monitor_core.alerts import effect_label, effect_nature, expiration_level, expiration_phase, level_label, status_visual_level, visual_colors
 from monitor_core.alert_policies import AlertPolicyResolver
 from monitor_core.actor_state import ACTOR_STATE_HEADER, ACTOR_STATE_STATUS_NAMES, decode_actor_state_packet
-from monitor_core.policies import MODE_AUTO, MODE_CUSTOM, MODE_OFF, PolicyResolver, ScopePolicy, build_scope_policies, legacy_mode, legacy_runtime_fields, migrate_settings_to_v2, normalize_mode, scope_code, serialize_scope_policies
+from monitor_core.policies import LEGACY_AUTHORITY_KEYS, MODE_AUTO, MODE_CUSTOM, MODE_OFF, PolicyResolver, ScopePolicy, build_scope_policies, legacy_mode, legacy_runtime_fields, migrate_settings_to_v2, normalize_mode, scope_code, serialize_scope_policies
 from monitor_core.session import MonitorSession
 from monitor_core.capabilities import ALLOWED_TARGET_SCOPES, local_data_filename
 from monitor_core.snapshots import StatusObservation
 from monitor_core.replay_discovery import LiveReplayDiscovery, ReplayFileSample
 from app.bootstrap import StartupTimeline
+from app.version import APP_VERSION
 from app.lifecycle import CloseAction, decide_close_action
 from catalog.schema import CatalogManifest, json_sha256, read_json_object, write_json_atomically as write_catalog_json_atomically
 from catalog.sync_worker import CatalogWorkerCancelled, CatalogWorkerClient, CatalogWorkerProgress, commit_catalog_cache_files
 from catalog.unknown_journal import UnknownJournal
 from catalog.development_store import merge_exact_client_names
 from catalog.pets import get_pet_info
+from catalog.effect_reviews import EffectReviews, ReviewConflict, load_effect_reviews
 from monitor_core.pet_alerts import CRITICAL_SATIETY_THRESHOLD, PetAlertController
 from monitor_core.pet_snapshot import ReplayPetSnapshot, decode_pet_snapshot
 from monitor_ui.pet_overlay import PetOverlay
@@ -316,8 +318,8 @@ ALERT_RULE_LABELS = {'apply': '立即', 'yellow': '黃燈', 'red': '紅燈'}
 STATUS_GROUP_ORDER = ('主要監控', '增益', '減益', '開關／特殊', '伺服器狀態', '未分類')
 STATUS_GROUP_BY_COLOR = {'COLOR_TITLE_BUFF': '增益', 'COLOR_TITLE_DEBUFF': '減益', 'COLOR_TITLE_TOGGLE': '開關／特殊'}
 STATUS_LIBRARY_CATEGORY_ORDER = ('技能', '消耗品', 'BUFF', 'DEBUFF', '掉寶', '經驗', '其他')
-STATUS_LIBRARY_INDEX_MODES = ('分類', '職業技能', '已勾選', '常用狀態')
-STATUS_LIBRARY_PLAYER_ENTRIES = ('已選擇', '職業技能', '消耗品', '異常狀態', '其他／搜尋')
+STATUS_LIBRARY_INDEX_MODES = ('分類', '目前身上', '職業技能', '已勾選', '常用狀態')
+STATUS_LIBRARY_PLAYER_ENTRIES = ('全部／搜尋', '目前身上', '已勾選', '職業技能', '消耗品', '異常狀態', '其他／待確認')
 CONSUMABLE_SUBCATEGORY_ORDER = ('全部消耗品', '經驗／掉寶', '料理／能力值', '攻擊／魔法', '攻速／移速', '防禦／抗性', 'HP／SP／恢復', '技能卷軸', '毒藥／負面效果', '特殊效果／變身', '其他／待確認')
 CONSUMABLE_SUBCATEGORY_ALIASES = {'料理': '料理／能力值', '素質料理': '料理／能力值', '補品': 'HP／SP／恢復', '藥水／補品': 'HP／SP／恢復', 'HP／SP／持續恢復': 'HP／SP／恢復', '卷軸／書籍': '技能卷軸', '糖／特殊食品': '特殊效果／變身', '食品／飲料': '特殊效果／變身', '特殊／變身': '特殊效果／變身', '戰鬥藥': '攻擊／魔法', '其他持續效果': '其他／待確認', '待確認消耗品': '其他／待確認'}
 JOB_EFFECT_FILTER_ORDER = ('全部效果', 'BUFF', 'DEBUFF', '開關／特殊', '未分類')
@@ -371,12 +373,13 @@ def resolved_target_scope_settings(saved_scopes: object, *, core_monitoring_only
         return {scope: scope == '自己' for scope in TARGET_SCOPE_ORDER}
     return {scope: bool(source.get(scope, defaults[scope])) for scope in TARGET_SCOPE_ORDER}
 
-def resolved_target_sound_settings(saved_scopes: object, *, core_monitoring_only: bool) -> dict[str, bool]:
+def resolved_target_sound_settings(saved_scopes: object, *, core_monitoring_only: bool, policy_scopes: object=None) -> dict[str, bool]:
     """提示音採安全預設；公開核心模式永遠只有自己可以發聲。"""
-    source = saved_scopes if isinstance(saved_scopes, dict) else {}
-    if core_monitoring_only:
-        return {scope: scope == '自己' for scope in TARGET_SCOPE_ORDER}
-    return {scope: bool(source.get(scope, TARGET_SOUND_DEFAULTS[scope])) for scope in TARGET_SCOPE_ORDER}
+    source = {}
+    for mapping in (saved_scopes, policy_scopes):
+        if isinstance(mapping, dict):
+            source.update({scope_code(scope): enabled for scope, enabled in mapping.items()})
+    return {scope: bool(source.get(scope_code(scope), TARGET_SOUND_DEFAULTS[scope])) and (not core_monitoring_only or scope == '自己') for scope in TARGET_SCOPE_ORDER}
 
 def normalized_status_ids(values: object) -> set[int]:
     """把設定檔中的狀態 ID 整理成安全的整數集合。"""
@@ -596,7 +599,7 @@ def _load_bundled_runtime_status_catalog() -> tuple[dict[int, dict[str, object]]
             name = str(raw_record.get('name', '')).strip()
             if not 0 <= status_id <= 65535 or not name or '�' in name:
                 continue
-            records[status_id] = {'name': name, 'has_skill_link': raw_record.get('has_skill_link') is True, 'display_name_override': str(raw_record.get('display_name_override', '')).strip(), 'aliases': tuple((str(value).strip() for value in raw_record.get('aliases', []) if str(value).strip())), 'functional_category': str(raw_record.get('functional_category', '其他／待確認')).strip(), 'item_names': tuple((str(value).strip() for value in raw_record.get('item_names', []) if str(value).strip())), 'source_tags': tuple((str(value).strip() for value in raw_record.get('source_tags', []) if str(value).strip()))}
+            records[status_id] = {'name': name, 'efst_code': str(raw_record.get('efst_code', '')), 'effect_group': str(raw_record.get('effect_group', '未分類')), 'raw_effect_group': str(raw_record.get('raw_effect_group', '')), 'raw_title_color': str(raw_record.get('raw_title_color', '')), 'effect_basis': raw_record.get('effect_basis', ''), 'effect_note': str(raw_record.get('effect_note', '')), 'review_status': str(raw_record.get('review_status', '')), 'has_skill_link': raw_record.get('has_skill_link') is True, 'display_name_override': str(raw_record.get('display_name_override', '')).strip(), 'aliases': tuple((str(value).strip() for value in raw_record.get('aliases', []) if str(value).strip())), 'functional_category': str(raw_record.get('functional_category', '其他／待確認')).strip(), 'item_names': tuple((str(value).strip() for value in raw_record.get('item_names', []) if str(value).strip())), 'source_tags': tuple((str(value).strip() for value in raw_record.get('source_tags', []) if str(value).strip()))}
         skill_status_ids = frozenset((value for value in payload.get('skill_status_ids', []) if isinstance(value, int) and 0 <= value <= 65535)) | frozenset((status_id for status_id, record in records.items() if record.get('has_skill_link') is True))
         return (records, f'已載入台版狀態用途索引 {len(records)} 項', skill_status_ids)
     except (OSError, UnicodeError, TypeError, ValueError, json.JSONDecodeError):
@@ -611,6 +614,39 @@ BUNDLED_STATUS_LIBRARY_CATEGORIES = dict(CLIENT_STATUS_LIBRARY_CATEGORIES)
 BUNDLED_STATUS_LIBRARY_CATEGORIES.update(EXTENDED_STATUS_LIBRARY_CATEGORIES)
 BUNDLED_EFST_GROUPS.update({status_id: '增益' if category == 'BUFF' else '減益' for status_id, category in BUNDLED_STATUS_LIBRARY_CATEGORIES.items() if category in {'BUFF', 'DEBUFF'}})
 STATUS_LIBRARY_CATEGORIES = BUNDLED_STATUS_LIBRARY_CATEGORIES
+try:
+    STATUS_EFFECT_REVIEWS = load_effect_reviews(APPLICATION_DIR / 'data')
+except (OSError, ValueError, TypeError):
+    STATUS_EFFECT_REVIEWS = EffectReviews({}, {}, (ReviewConflict(None, 'review_data_unavailable'),))
+STATUS_REVIEW_CONFLICTS = STATUS_EFFECT_REVIEWS.apply(BUNDLED_EFST_NAMES, BUNDLED_EFST_GROUPS, RUNTIME_STATUS_METADATA)
+BUNDLED_RUNTIME_STATUS_METADATA = {status_id: dict(record) for status_id, record in RUNTIME_STATUS_METADATA.items()}
+CURRENT_EFST_CODES = dict(STATUS_EFFECT_REVIEWS.code_map)
+EFST_NAMES.update(BUNDLED_EFST_NAMES)
+EFST_GROUPS.update(BUNDLED_EFST_GROUPS)
+
+def apply_current_status_reviews() -> None:
+    """所有名稱／性質更新最後套回覆核；未知代碼不沿用舊狀態的利弊。"""
+    global STATUS_REVIEW_CONFLICTS
+    conflicts = list(STATUS_EFFECT_REVIEWS.apply(EFST_NAMES, EFST_GROUPS, RUNTIME_STATUS_METADATA, CURRENT_EFST_CODES))
+    identity_conflicts = {conflict.status_id for conflict in conflicts if conflict.reason in {'efst_code_mismatch', 'metadata_code_mismatch'}}
+    baselines = (STATUS_EFFECT_REVIEWS.code_map, {status_id: str(record.get('efst_code', '')) for status_id, record in BUNDLED_RUNTIME_STATUS_METADATA.items()})
+    for baseline in baselines:
+        for status_id, expected in baseline.items():
+            actual = CURRENT_EFST_CODES.get(status_id, '')
+            if expected and actual and (expected != actual) and (status_id not in identity_conflicts):
+                conflicts.append(ReviewConflict(status_id, 'efst_code_mismatch', expected, actual))
+                identity_conflicts.add(status_id)
+    STATUS_REVIEW_CONFLICTS = tuple(conflicts)
+    for conflict in conflicts:
+        if conflict.status_id is None or conflict.reason not in {'efst_code_mismatch', 'metadata_code_mismatch'}:
+            continue
+        status_id = conflict.status_id
+        EFST_GROUPS[status_id] = '未分類'
+        if EFST_NAMES.get(status_id) == BUNDLED_EFST_NAMES.get(status_id) and conflict.actual_code:
+            EFST_NAMES[status_id] = conflict.actual_code
+        if status_id in RUNTIME_STATUS_METADATA:
+            RUNTIME_STATUS_METADATA[status_id] = {'name': EFST_NAMES.get(status_id, ''), 'efst_code': conflict.actual_code, 'effect_group': '未分類', 'functional_category': '其他／待確認', 'has_skill_link': False, 'aliases': (), 'item_names': (), 'source_tags': (), 'review_status': '代碼變動，待重新核對'}
+apply_current_status_reviews()
 
 @dataclass(frozen=True)
 class StatusDataResult:
@@ -619,6 +655,7 @@ class StatusDataResult:
     source: str
     report: str
     signatures: list[dict[str, object]]
+    efst_codes: dict[int, str] = field(default_factory=dict)
 
 @dataclass(frozen=True)
 class ClientCatalogResult:
@@ -1226,7 +1263,7 @@ PET_NAMES_BY_ID = BUNDLED_CLIENT_CATALOG.pet_names
 PET_FOOD_ITEM_IDS = BUNDLED_CLIENT_CATALOG.pet_food_item_ids
 CLIENT_CATALOG_SOURCE = BUNDLED_CLIENT_CATALOG.source
 
-def _parse_client_status_bytecode(efst_data: bytes, icon_data: bytes) -> tuple[dict[int, str], dict[int, str], int]:
+def _parse_client_status_bytecode(efst_data: bytes, icon_data: bytes, *, efst_codes_out: dict[int, str] | None=None) -> tuple[dict[int, str], dict[int, str], int]:
     efst_globals = _lua_static_table(_lua_parse_chunk(efst_data))
     efst_table = efst_globals.get('EFST_IDs')
     if not isinstance(efst_table, _LuaTable):
@@ -1239,7 +1276,7 @@ def _parse_client_status_bytecode(efst_data: bytes, icon_data: bytes) -> tuple[d
             if 0 <= status_id <= 65535:
                 efst_name = key.decode('ascii', errors='ignore')
                 name_by_id[status_id] = efst_name
-                fallback = BUNDLED_EFST_NAMES.get(status_id, '')
+                fallback = BUNDLED_EFST_NAMES.get(status_id, '') if STATUS_EFFECT_REVIEWS.code_map.get(status_id) == efst_name else ''
                 names_by_id[status_id] = fallback if _usable_status_text(fallback) else efst_name
     icon_globals = _lua_static_table(icon_data and _lua_parse_chunk(icon_data), {'EFST_IDs': efst_table})
     icon_table = icon_globals.get('StateIconList')
@@ -1272,8 +1309,10 @@ def _parse_client_status_bytecode(efst_data: bytes, icon_data: bytes) -> tuple[d
             names_by_id[status_id] = first_title
         if group:
             groups_by_id[status_id] = group
-    names_by_id[FOCUS_STATUS_ID] = '經驗值倍增'
-    groups_by_id[FOCUS_STATUS_ID] = '主要監控'
+    if name_by_id.get(FOCUS_STATUS_ID) == 'EFST_RICHMANKIM':
+        names_by_id[FOCUS_STATUS_ID] = '經驗值倍增'
+    if efst_codes_out is not None:
+        efst_codes_out.update(name_by_id)
     return (names_by_id, groups_by_id, len(icon_table.fields))
 
 def _grf_signatures(ro_dir: Path) -> list[dict[str, object]]:
@@ -1319,19 +1358,22 @@ def _read_status_cache(cache_path: Path, ro_dir: Path, signatures: list[dict[str
     try:
         with cache_path.open('r', encoding='utf-8') as handle:
             cache = json.load(handle)
-        if cache.get('version') != 2 or cache.get('game_id') != TWRO_GAME_ID or cache.get('ro_dir') != str(ro_dir.resolve()) or (cache.get('signatures') != signatures):
+        if not isinstance(cache, dict) or cache.get('version') != 4 or cache.get('game_id') != TWRO_GAME_ID or (cache.get('ro_dir') != str(ro_dir.resolve())) or (cache.get('signatures') != signatures):
             return None
-        names = {int(key): str(value) for key, value in cache.get('names', {}).items()}
-        groups = {int(key): str(value) for key, value in cache.get('groups', {}).items()}
-        if not names:
+        if not all((isinstance(cache.get(field), dict) for field in ('names', 'groups', 'efst_codes'))):
+            return None
+        names = {int(key): str(value) for key, value in cache['names'].items()}
+        groups = {int(key): str(value) for key, value in cache['groups'].items()}
+        codes = {int(key): value for key, value in cache['efst_codes'].items()}
+        if not names or not names.keys() | groups.keys() <= codes.keys() or any((not 0 <= key <= 65535 for key in codes)) or any((not isinstance(value, str) or not re.fullmatch('EFST_[A-Za-z0-9_]+', value) for value in codes.values())):
             return None
         cached_report = str(cache.get('report', '已讀取 RO 狀態資料'))
-        return StatusDataResult(names, groups, str(cache.get('source', 'RO 主程式快取')), f'已使用 RO 狀態資料快取：{cached_report}', signatures)
+        return StatusDataResult(names, groups, str(cache.get('source', 'RO 主程式快取')), f'已使用 RO 狀態資料快取：{cached_report}', signatures, codes)
     except (OSError, ValueError, TypeError):
         return None
 
 def _write_status_cache(cache_path: Path, ro_dir: Path, result: StatusDataResult, *, strict_errors: bool=False) -> None:
-    payload = {'version': 2, 'game_id': TWRO_GAME_ID, 'ro_dir': str(ro_dir.resolve()), 'signatures': result.signatures, 'source': result.source, 'report': result.report, 'names': {str(key): value for key, value in result.names.items()}, 'groups': {str(key): value for key, value in result.groups.items()}}
+    payload = {'version': 4, 'game_id': TWRO_GAME_ID, 'ro_dir': str(ro_dir.resolve()), 'signatures': result.signatures, 'source': result.source, 'report': result.report, 'names': {str(key): value for key, value in result.names.items()}, 'groups': {str(key): value for key, value in result.groups.items()}, 'efst_codes': {str(key): value for key, value in result.efst_codes.items()}}
     try:
         write_catalog_json_atomically(cache_path, payload, backup=True)
     except (OSError, TypeError, ValueError):
@@ -1586,14 +1628,15 @@ def load_client_status_data(ro_dir: Path, cache_path: Path, progress_callback: C
     if efst_data is not None and icon_data is not None:
         try:
             report_progress(90, '解析 EFSTIDs 與狀態圖示資料')
-            names, groups, icon_count = _parse_client_status_bytecode(efst_data, icon_data)
+            efst_codes: dict[int, str] = {}
+            names, groups, icon_count = _parse_client_status_bytecode(efst_data, icon_data, efst_codes_out=efst_codes)
             if strict_errors and (not names or not icon_count):
                 raise GrfError('RO 狀態資料為空，保留原有快取')
             source = f"RO 主程式資料（{', '.join(source_files)}）"
             report = f'已讀取 RO 狀態資料：{len(names)} 個 EFST、{icon_count} 個圖示定義'
             if legacy_archives:
                 report += '；略過舊格式附屬資料 ' + ', '.join(legacy_archives)
-            result = StatusDataResult(names, groups, source, report, signatures)
+            result = StatusDataResult(names, groups, source, report, signatures, efst_codes)
             _write_status_cache(cache_path, ro_dir, result)
             report_progress(100, 'RO 狀態資料校對完成')
             return result
@@ -1605,15 +1648,17 @@ def load_client_status_data(ro_dir: Path, cache_path: Path, progress_callback: C
     report_progress(100, '校對未完成，沿用內建狀態資料')
     return StatusDataResult(dict(BUNDLED_EFST_NAMES), dict(BUNDLED_EFST_GROUPS), BUNDLED_STATUS_DATA_SOURCE, f'RO 狀態資料讀取失敗，沿用內建資料：{reason}', signatures)
 
-def set_status_data(names: dict[int, str], groups: dict[int, str], source: str) -> None:
+def set_status_data(names: dict[int, str], groups: dict[int, str], source: str, *, efst_codes: dict[int, str] | None=None) -> None:
     global EFST_NAMES, EFST_GROUPS, STATUS_DATA_SOURCE, STATUS_LIBRARY_CATEGORIES
+    global CURRENT_EFST_CODES, RUNTIME_STATUS_METADATA
+    CURRENT_EFST_CODES = dict(STATUS_EFFECT_REVIEWS.code_map)
+    CURRENT_EFST_CODES.update(efst_codes or {})
+    RUNTIME_STATUS_METADATA = {key: dict(value) for key, value in BUNDLED_RUNTIME_STATUS_METADATA.items()}
     EFST_NAMES = dict(BUNDLED_EFST_NAMES)
     EFST_NAMES.update(names)
-    EFST_NAMES.update(REVIEWED_STATUS_DISPLAY_NAMES)
-    EFST_NAMES[FOCUS_STATUS_ID] = '經驗值倍增'
     EFST_GROUPS = dict(BUNDLED_EFST_GROUPS)
     EFST_GROUPS.update(groups)
-    EFST_GROUPS[FOCUS_STATUS_ID] = '主要監控'
+    apply_current_status_reviews()
     STATUS_LIBRARY_CATEGORIES = BUNDLED_STATUS_LIBRARY_CATEGORIES
     STATUS_DATA_SOURCE = source
 
@@ -1661,8 +1706,20 @@ def merge_status_data_delta(result: StatusDataResult) -> None:
     """合併定向辨識的小量狀態名稱，不複製完整狀態表。"""
     global STATUS_DATA_SOURCE
     EFST_NAMES.update(result.names)
-    EFST_NAMES.update(REVIEWED_STATUS_DISPLAY_NAMES)
     EFST_GROUPS.update(result.groups)
+    for status_id, code in result.efst_codes.items():
+        if CURRENT_EFST_CODES.get(status_id) == code:
+            continue
+        matches_bundle = STATUS_EFFECT_REVIEWS.code_map.get(status_id) == code
+        if status_id not in result.names:
+            EFST_NAMES[status_id] = BUNDLED_EFST_NAMES.get(status_id, code) if matches_bundle else code
+        if matches_bundle and status_id not in result.groups and (status_id in BUNDLED_EFST_GROUPS):
+            EFST_GROUPS[status_id] = BUNDLED_EFST_GROUPS[status_id]
+    CURRENT_EFST_CODES.update(result.efst_codes)
+    for status_id in result.names.keys() | result.groups.keys() | result.efst_codes.keys():
+        if status_id in BUNDLED_RUNTIME_STATUS_METADATA:
+            RUNTIME_STATUS_METADATA[status_id] = dict(BUNDLED_RUNTIME_STATUS_METADATA[status_id])
+    apply_current_status_reviews()
     STATUS_DATA_SOURCE = result.source
 
 def _write_json_atomically(path: Path, payload: dict[str, object]) -> None:
@@ -1683,7 +1740,7 @@ def _write_json_atomically(path: Path, payload: dict[str, object]) -> None:
 def _status_result_payload(result: StatusDataResult | None) -> dict[str, object] | None:
     if result is None:
         return None
-    return {'names': {str(key): value for key, value in result.names.items()}, 'groups': {str(key): value for key, value in result.groups.items()}, 'source': result.source, 'report': result.report, 'signatures': result.signatures}
+    return {'names': {str(key): value for key, value in result.names.items()}, 'groups': {str(key): value for key, value in result.groups.items()}, 'efst_codes': {str(key): value for key, value in result.efst_codes.items()}, 'source': result.source, 'report': result.report, 'signatures': result.signatures}
 
 def _client_result_payload(result: ClientCatalogResult | None) -> dict[str, object] | None:
     if result is None:
@@ -1693,7 +1750,7 @@ def _client_result_payload(result: ClientCatalogResult | None) -> dict[str, obje
 def _status_result_from_payload(payload: object) -> StatusDataResult | None:
     if not isinstance(payload, dict):
         return None
-    return StatusDataResult({int(key): str(value) for key, value in dict(payload.get('names', {})).items() if str(value).strip()}, {int(key): str(value) for key, value in dict(payload.get('groups', {})).items() if str(value).strip()}, str(payload.get('source', 'RO 主程式資料')), str(payload.get('report', '資料處理完成')), list(payload.get('signatures', [])))
+    return StatusDataResult({int(key): str(value) for key, value in dict(payload.get('names', {})).items() if str(value).strip()}, {int(key): str(value) for key, value in dict(payload.get('groups', {})).items() if str(value).strip()}, str(payload.get('source', 'RO 主程式資料')), str(payload.get('report', '資料處理完成')), list(payload.get('signatures', [])), {int(key): str(value) for key, value in dict(payload.get('efst_codes', {})).items()})
 
 def _client_result_from_payload(payload: object) -> ClientCatalogResult | None:
     if not isinstance(payload, dict):
@@ -1762,7 +1819,7 @@ def run_catalog_worker(request_path: Path, result_path: Path, progress_path: Pat
                 if cached_status is None:
                     raise RuntimeError('RO 狀態索引未建立：' + attempted_status.report)
             if cached_status is not None:
-                status_result = StatusDataResult({status_id: cached_status.names[status_id] for status_id in status_ids if status_id in cached_status.names}, {status_id: cached_status.groups[status_id] for status_id in status_ids if status_id in cached_status.groups}, cached_status.source, cached_status.report, cached_status.signatures)
+                status_result = StatusDataResult({status_id: cached_status.names[status_id] for status_id in status_ids if status_id in cached_status.names}, {status_id: cached_status.groups[status_id] for status_id in status_ids if status_id in cached_status.groups}, cached_status.source, cached_status.report, cached_status.signatures, {status_id: cached_status.efst_codes[status_id] for status_id in status_ids if status_id in cached_status.efst_codes})
             progress(45, '已比對狀態名稱')
             if item_ids:
                 loaded_client = load_client_catalog_data(ro_dir, client_cache_path, progress_callback=lambda value, message: progress(45 + value * 0.5, message), force=False, wanted_item_ids=item_ids, allow_full_scan=False)
@@ -1794,13 +1851,16 @@ def player_facing_status_name(value: str) -> str:
 def status_name(status_id: int, source_header: int | None=None) -> str:
     if source_header == 406:
         return f'伺服器狀態（0x{status_id:04X}）'
-    return player_facing_status_name(EFST_NAMES.get(status_id, f'未確認狀態（0x{status_id:04X}）'))
+    if not is_readable_status_name(status_id):
+        return f'未確認狀態 {status_id}'
+    return player_facing_status_name(EFST_NAMES[status_id])
 
 def is_readable_status_name(status_id: int) -> bool:
     """判斷狀態是否適合直接顯示給一般使用者選取。
 
     EFST_* 是資料庫只有常數名稱、沒有遊戲內可讀標題的項目；這些 ID
-    仍然保留在解析與校對流程，但不應混進玩家要勾選的清單。
+    未觀測的技術常數不放進日常清單；實際收到或已保存的 ID 另以
+    「未確認狀態 ID」呈現。名称品質不能決定是否接受觀測。
     """
     name = str(EFST_NAMES.get(status_id, '')).strip()
     if not name:
@@ -1813,8 +1873,6 @@ def is_readable_status_name(status_id: int) -> bool:
     return True
 
 def status_group(status_id: int, source_header: int | None=None) -> str:
-    if status_id == FOCUS_STATUS_ID:
-        return '主要監控'
     if source_header == 406:
         return '伺服器狀態'
     return EFST_GROUPS.get(status_id, '未分類')
@@ -1937,20 +1995,8 @@ def available_consumable_subcategories(index: StatusSearchIndex) -> tuple[str, .
     return (CONSUMABLE_SUBCATEGORY_ORDER[0], *tuple((category for category in CONSUMABLE_SUBCATEGORY_ORDER[1:] if index.by_consumable.get(category))))
 
 def status_display_priority(status_id: int, source_header: int | None=None) -> int:
-    """玩家視角排序：異常最前，其次收益、消耗品、一般增益與未知。"""
-    if not is_readable_status_name(status_id):
-        return 5
-    category = status_library_category(status_id, source_header)
-    group = status_group(status_id, source_header)
-    if category == 'DEBUFF' or group == '減益':
-        return 0
-    if category in {'經驗', '掉寶'} or status_id == FOCUS_STATUS_ID:
-        return 1
-    if category == '消耗品':
-        return 2
-    if category == 'BUFF' or group in {'增益', '主要監控'}:
-        return 3
-    return 4
+    """人物內共用的性質順序；來源關聯不改變注意順序。"""
+    return {'debuff': 0, 'buff': 1, 'special': 2, 'unknown': 3}[effect_nature(status_group(status_id, source_header))]
 
 def u16(data: bytes, offset: int) -> int:
     return struct.unpack_from('<H', data, offset)[0]
@@ -2029,6 +2075,7 @@ class StatusState:
     event_timeline_ms: int
     observed_monotonic: float
     source_header: int
+    activation_revision: int = 0
 
     @property
     def key(self) -> tuple[int, int]:
@@ -2649,6 +2696,7 @@ class StatusTracker:
 
     def __init__(self) -> None:
         self._lock = threading.Lock()
+        self._activation_revision = 0
         self.states: dict[tuple[int, int], StatusState] = {}
         self.allowed_status_ids: set[int] | None = None
         self.allowed_target_ids: set[int] | None = set()
@@ -2756,7 +2804,10 @@ class StatusTracker:
             existing = self.states.get((status_id, target_id))
             was_active = status_id in previous_ids or (existing is not None and existing.active)
             if existing is None or existing.source_header == ACTOR_STATE_HEADER or (not existing.active):
-                self.states[status_id, target_id] = StatusState(status_id=status_id, target_id=target_id, active=True, total_ms=None, remaining_ms=None, event_timeline_ms=packet.timeline_ms, observed_monotonic=time.monotonic(), source_header=ACTOR_STATE_HEADER)
+                if not was_active:
+                    self._activation_revision += 1
+                activation_revision = self._activation_revision if not was_active else existing.activation_revision if existing is not None else 0
+                self.states[status_id, target_id] = StatusState(status_id=status_id, target_id=target_id, active=True, total_ms=None, remaining_ms=None, event_timeline_ms=packet.timeline_ms, observed_monotonic=time.monotonic(), source_header=ACTOR_STATE_HEADER, activation_revision=activation_revision)
             if not was_active:
                 applied_events.append((status_id, target_id, packet.timeline_ms))
         return applied_events
@@ -2825,13 +2876,21 @@ class StatusTracker:
         if self.allowed_target_ids is not None and target_id not in self.allowed_target_ids:
             return None
         active = data[8] != 0
+        previous = self.states.get((status_id, target_id))
+        activation_revision = previous.activation_revision if previous is not None else 0
+        previous_finished = previous is None or not previous.active
+        if previous is not None and previous.remaining_ms is not None:
+            previous_finished = previous_finished or previous.remaining_ms <= max(0, packet.timeline_ms - previous.event_timeline_ms)
+        if active and previous_finished:
+            self._activation_revision += 1
+            activation_revision = self._activation_revision
         if packet.header == 1087:
             total_ms = None
             remaining_ms = u32(data, 9)
         else:
             total_ms = u32(data, 9)
             remaining_ms = u32(data, 13)
-        self.states[status_id, target_id] = StatusState(status_id=status_id, target_id=target_id, active=active, total_ms=total_ms, remaining_ms=remaining_ms, event_timeline_ms=packet.timeline_ms, observed_monotonic=time.monotonic(), source_header=packet.header)
+        self.states[status_id, target_id] = StatusState(status_id=status_id, target_id=target_id, active=active, total_ms=total_ms, remaining_ms=remaining_ms, event_timeline_ms=packet.timeline_ms, observed_monotonic=time.monotonic(), source_header=packet.header, activation_revision=activation_revision)
         return (status_id, target_id, packet.timeline_ms) if active else None
 
     def advance_timeline(self, timeline_ms: int) -> None:
@@ -3292,7 +3351,7 @@ class RrfMonitorApp(tk.Tk):
         super().__init__()
         self.startup_timeline = startup_timeline
         startup_timeline.mark('Tk')
-        self.title('RO RRF 即時狀態監控器｜1.6.5')
+        self.title('RO RRF 即時狀態監控器｜1.6.6')
         self.geometry('1080x780')
         self.minsize(900, 620)
         self.protocol('WM_DELETE_WINDOW', self.on_close)
@@ -3435,6 +3494,10 @@ class RrfMonitorApp(tk.Tk):
         self.status_option_source_headers: dict[int, int] = {}
         self.status_option_signature: tuple[object, ...] | None = None
         self.status_option_generation = 0
+        self.status_library_index_signature: tuple[object, ...] | None = None
+        self.status_observed_ids_by_scope: dict[str, set[int]] = {}
+        self.status_observed_ids_by_target: dict[int, set[int]] = {}
+        self.status_observation_context = '等待監控資料'
         self.readable_status_generation = -1
         self.readable_status_ids_cache: frozenset[int] = frozenset()
         self.status_rebuild_job: str | None = None
@@ -3461,7 +3524,7 @@ class RrfMonitorApp(tk.Tk):
         self.status_detail_alert_vars = {key: tk.BooleanVar(value=False) for key in ALERT_RULE_KEYS}
         self.status_detail_controls: list[ttk.Checkbutton] = []
         self.status_index_mode_var = tk.StringVar(value=STATUS_LIBRARY_INDEX_MODES[0])
-        self.status_category_var = tk.StringVar(value='經驗')
+        self.status_category_var = tk.StringVar(value='全部分類')
         self.status_consumable_subcategory_var = tk.StringVar(value=CONSUMABLE_SUBCATEGORY_ORDER[0])
         self.status_job_var = tk.StringVar(value='全部職業')
         self.status_job_value_map: dict[str, str] = {'全部職業': '全部職業'}
@@ -3593,7 +3656,7 @@ class RrfMonitorApp(tk.Tk):
             self.target_scope_vars[scope] = tk.BooleanVar(value=resolved_modes[scope] != TARGET_DISPLAY_MODE_OFF)
         self.target_scope_display_modes_snapshot = dict(resolved_modes)
         self.target_display_mode_overrides_snapshot = dict(self.target_display_mode_overrides)
-        resolved_sound_scopes = resolved_target_sound_settings(self.settings.get('target_sound_enabled'), core_monitoring_only=self.core_monitoring_only)
+        resolved_sound_scopes = resolved_target_sound_settings(self.settings.get('target_sound_enabled'), core_monitoring_only=self.core_monitoring_only, policy_scopes=self.settings['alert_policies'].get('scope_enabled') if isinstance(self.settings.get('alert_policies'), dict) else None)
         for scope in TARGET_SCOPE_ORDER:
             self.target_sound_vars[scope] = tk.BooleanVar(value=resolved_sound_scopes[scope])
         self.target_tracker.set_enabled_scopes((scope for scope, variable in self.target_scope_vars.items() if variable.get()))
@@ -3733,7 +3796,7 @@ class RrfMonitorApp(tk.Tk):
         self.client_data_signatures = client_signatures
         self.catalog_manifest_valid = not manifest_errors
         if cached_status is not None:
-            set_status_data(cached_status.names, cached_status.groups, cached_status.source)
+            set_status_data(cached_status.names, cached_status.groups, cached_status.source, efst_codes=cached_status.efst_codes)
             self.status_data_report = cached_status.report
         if cached_client is not None:
             set_client_catalog(cached_client)
@@ -3928,16 +3991,88 @@ class RrfMonitorApp(tk.Tk):
         self.alerted.discard((state_key, 'yellow'))
         self.alerted.discard((state_key, 'red'))
 
+    def source_data_status(self) -> tuple[bool, str]:
+        """共用來源健康判定；其他有效封包也能維持來源有效。"""
+        if self.__dict__.get('close_finalized', False) or not self.monitoring_is_active():
+            return (False, '已停止')
+        reset = self.__dict__.get('monitor_reset_requested')
+        parser = self.__dict__.get('incremental_parser')
+        if reset is not None and reset.is_set() or parser is None or parser.suppress_apply_events:
+            return (False, '建立中')
+        updated = self.__dict__.get('last_rrf_data_monotonic')
+        if self.__dict__.get('current_path') is None or updated is None:
+            return (False, '等待資料')
+        if time.monotonic() - updated > 10:
+            return (False, '上次資料｜待更新')
+        return (True, '資料接收中')
+
+    def reset_status_alert_tracking(self) -> None:
+        """新錄影首次有效快照先建立門檻基線，不補播歷史。"""
+        self._expiration_source_was_valid = False
+        self._expiration_last_data_stamp = None
+        self._expiration_activation_revisions = {}
+        self._status_live_apply_keys = set()
+        self._status_display_remaining = {}
+        self._status_frozen_remaining = {}
+        self.cancel_alert_audio()
+
+    def status_display_states(self, states: list[tuple[StatusState, int | None]], valid: bool) -> list[tuple[StatusState, int | None]]:
+        """停更時保留上次顯示值，不能把舊資料當成即時倒數。"""
+        if valid:
+            self._status_display_remaining = {state.key: remaining for state, remaining in states}
+            self._status_frozen_remaining = {}
+            return states
+        frozen = self.__dict__.setdefault('_status_frozen_remaining', {})
+        last_live = self.__dict__.get('_status_display_remaining', {})
+        current_keys = {state.key for state, _remaining in states}
+        for key in tuple(frozen):
+            if key not in current_keys:
+                del frozen[key]
+        result = []
+        for state, remaining in states:
+            if state.active:
+                remaining = frozen.setdefault(state.key, last_live.get(state.key, remaining))
+            else:
+                frozen.pop(state.key, None)
+            result.append((state, remaining))
+        return result
+
+    def status_row_sort_key(self, state: StatusState, remaining: int | None) -> tuple:
+        """主表和卡片都先固定人物及性質，再採人物內的排序選擇。"""
+        variable = self.__dict__.get('status_sort_var')
+        mode = variable.get() if variable is not None else '人物優先'
+        name = status_name(state.status_id, state.source_header).casefold()
+        timer = remaining if remaining is not None else 10 ** 12
+        detail = (name, timer) if mode == '狀態優先' else (timer, name)
+        return (TARGET_SCOPE_ORDER.index(self.target_tracker.relation_for(state.target_id)), state.target_id, status_display_priority(state.status_id, state.source_header), *detail, state.status_id)
+
     @serialized_scoped_monitor
     def process_expiration_alerts(self, states: list[tuple[StatusState, int | None]], *, sync_ms: int, yellow_ms: int, red_ms: int, yellow_seconds: float, red_seconds: float) -> None:
         """依狀態事實處理到期聲音，不依賴主表或卡片是否顯示該狀態。"""
+        valid, _data_text = self.source_data_status()
+        was_valid = self.__dict__.get('_expiration_source_was_valid', False)
+        previous_update = self.__dict__.get('_expiration_last_data_stamp')
+        updated = self.__dict__.get('last_rrf_data_monotonic')
+        if valid and previous_update is not None and (updated is not None) and (updated - previous_update > 10):
+            was_valid = False
+        self._expiration_last_data_stamp = updated
+        self._expiration_source_was_valid = valid
+        live_apply_keys = self.__dict__.pop('_status_live_apply_keys', set())
+        revisions = self.__dict__.setdefault('_expiration_activation_revisions', {})
+        current_keys = {state.key for state, _remaining in states}
+        for key in tuple(revisions):
+            if key not in current_keys:
+                self.clear_expiration_alerts(key)
+                del revisions[key]
         display_resolver = self.current_policy_resolver()
         alert_resolver = self.current_alert_policy_resolver()
+        notifications: list[tuple[StatusState, str, int]] = []
         for state, remaining in states:
-            if state.target_id not in self.target_tracker.trusted_target_ids():
+            previous_revision = revisions.get(state.key)
+            if previous_revision is not None and previous_revision != state.activation_revision:
                 self.clear_expiration_alerts(state.key)
-                continue
-            if not is_readable_status_name(state.status_id):
+            revisions[state.key] = state.activation_revision
+            if state.target_id not in self.target_tracker.trusted_target_ids():
                 self.clear_expiration_alerts(state.key)
                 continue
             target_name = self.target_tracker.target_name(state.target_id) or ''
@@ -3955,11 +4090,22 @@ class RrfMonitorApp(tk.Tk):
             if not phase:
                 self.clear_expiration_alerts(state.key)
                 continue
-            decision = alert_resolver.resolve(rule_key=phase, status_id=state.status_id, relation=relation, target_name=target_name, default_enabled=bool(self.default_status_alert_rule(state.status_id).get(phase, False)))
             alert_key = (state.key, phase)
-            if decision.enabled and alert_key not in self.alerted:
+            if not valid or (not was_valid and state.key not in live_apply_keys):
                 self.alerted.add(alert_key)
-                self.play_alert_sound(phase, status_name(state.status_id, state.source_header), yellow_seconds if phase == 'yellow' else red_seconds, self.spoken_target_name(state.target_id))
+                if phase == 'red':
+                    self.alerted.add((state.key, 'yellow'))
+                continue
+            decision = alert_resolver.resolve(rule_key=phase, status_id=state.status_id, relation=relation, target_name=target_name, default_enabled=bool(self.default_status_alert_rule(state.status_id).get(phase, False)))
+            if alert_key not in self.alerted:
+                self.alerted.add(alert_key)
+                if decision.enabled:
+                    notifications.append((state, phase, adjusted_remaining))
+        if len(notifications) == 1:
+            state, phase, remaining = notifications[0]
+            self.play_alert_sound(phase, status_name(state.status_id, state.source_header), remaining_seconds(remaining), self.spoken_target_name(state.target_id), status_keys=(state.key,), remaining_offset_ms=sync_ms, expiration_limit_ms=yellow_ms if phase == 'yellow' else red_ms)
+        elif notifications:
+            self.play_alert_sound('expiration_batch', f'{self.chinese_number(len(notifications))}項狀態即將結束，請查看狀態卡片', 0, status_keys=tuple((state.key for state, _phase, _remaining in notifications)), remaining_offset_ms=sync_ms, expiration_limit_ms=yellow_ms)
 
     def on_status_alert_rule_changed(self, status_id: int) -> None:
         variables = self.ensure_status_alert_rule_vars(status_id)
@@ -4222,7 +4368,7 @@ class RrfMonitorApp(tk.Tk):
             target_overrides[target_name] = {'mode': mode, 'custom_status_ids': sorted(self.__dict__.get('target_status_overrides', {}).get(target_id, set()))}
         self_target_id = self.parse_target_id(self.self_target_id_var.get())
         self_target_name = self.self_target_name_var.get().strip()
-        settings = {'settings_schema_version': 2, 'scope_policies': serialize_scope_policies(scope_policies), 'target_overrides': target_overrides, 'alert_policies': {'status_rules': status_alert_rules, 'scope_enabled': {scope: bool(variable.get()) for scope, variable in self.target_sound_vars.items()}, 'scope_status_rules': self.__dict__.get('scope_status_alert_rules', {}), 'target_overrides': self.__dict__.get('target_alert_overrides', {})}, 'replay_dir': self.dir_var.get().strip(), 'ro_install_dir': self.ro_dir_var.get().strip(), 'auto_client_data': False, 'selected_file': self.file_var.get().strip(), 'auto_latest': bool(self.auto_latest_var.get()), 'alert_status_ids': alert_status_ids, 'show_all_statuses': bool(self.show_all_statuses_var.get()), 'show_technical_columns': bool(self.show_technical_columns_var.get()), 'alert_seconds': max(0, self.safe_float(self.red_var.get(), 15)), 'yellow_seconds': max(0, self.safe_float(self.yellow_var.get(), 30)), 'red_seconds': max(0, self.safe_float(self.red_var.get(), 15)), 'yellow_sound_enabled': bool(self.yellow_sound_var.get()), 'red_sound_enabled': bool(self.red_sound_var.get()), 'apply_sound_enabled': bool(self.apply_sound_var.get()), 'status_alert_rules': status_alert_rules, 'sound_mode': self.sound_mode_var.get(), 'sound_file': self.sound_file_var.get().strip(), 'sound_volume': int(self.sound_volume_var.get()), 'overlay_enabled': bool(self.overlay_enabled_var.get()), 'overlay_width': int(self.overlay_width), 'overlay_height': int(self.overlay_height), 'overlay_x': self.overlay_x, 'overlay_y': self.overlay_y, 'overlay_auto_height': bool(self.overlay_auto_height_var.get()), 'overlay_locked': bool(self.overlay_locked_var.get()), 'overlay_opacity': max(OVERLAY_MIN_OPACITY, min(OVERLAY_MAX_OPACITY, float(self.overlay_opacity))), 'overlay_font_size': int(self.overlay_font_size), 'tree_column_widths': self.current_tree_column_widths(), 'sync_offset_seconds': max(0, self.safe_float(self.sync_var.get(), 5)), 'auto_sync': bool(self.auto_sync_var.get()), 'poll_seconds': max(0.2, self.safe_float(self.interval_var.get(), 0.5)), 'core_monitoring_only': bool(self.core_monitoring_only), 'target_sound_enabled': {scope: bool(variable.get()) for scope, variable in self.target_sound_vars.items()}, 'self_target_id': self_target_id, 'self_target_name': self_target_name, 'target_view': self.target_view_var.get() if self.target_view_var.get() in TARGET_VIEW_MODES else TARGET_VIEW_MODES[0], 'pet_monitor_enabled': bool(self.pet_monitor_enabled_var.get()), 'pet_selected_id': self.parse_target_id(self.pet_selected_id_var.get()), 'pet_alert_enabled': bool(self.pet_alert_enabled_var.get()), 'pet_alert_threshold': max(0, min(100, int(self.safe_float(self.pet_alert_threshold_var.get(), PET_ALERT_DEFAULT_THRESHOLD)))), 'auto_resolve_unknown': bool(self.settings.get('auto_resolve_unknown', True))}
+        settings = {**{key: value for key, value in self.settings.items() if key not in LEGACY_AUTHORITY_KEYS}, 'settings_schema_version': 2, 'scope_policies': serialize_scope_policies(scope_policies), 'target_overrides': target_overrides, 'alert_policies': {**(self.settings['alert_policies'] if isinstance(self.settings.get('alert_policies'), dict) else {}), 'status_rules': status_alert_rules, 'scope_enabled': {scope: bool(variable.get()) for scope, variable in self.target_sound_vars.items()}, 'scope_status_rules': self.__dict__.get('scope_status_alert_rules', {}), 'target_overrides': self.__dict__.get('target_alert_overrides', {})}, 'replay_dir': self.dir_var.get().strip(), 'ro_install_dir': self.ro_dir_var.get().strip(), 'auto_client_data': False, 'selected_file': self.file_var.get().strip(), 'auto_latest': bool(self.auto_latest_var.get()), 'alert_status_ids': alert_status_ids, 'show_all_statuses': bool(self.show_all_statuses_var.get()), 'show_technical_columns': bool(self.show_technical_columns_var.get()), 'alert_seconds': max(0, self.safe_float(self.red_var.get(), 15)), 'yellow_seconds': max(0, self.safe_float(self.yellow_var.get(), 30)), 'red_seconds': max(0, self.safe_float(self.red_var.get(), 15)), 'yellow_sound_enabled': bool(self.yellow_sound_var.get()), 'red_sound_enabled': bool(self.red_sound_var.get()), 'apply_sound_enabled': bool(self.apply_sound_var.get()), 'status_alert_rules': status_alert_rules, 'sound_mode': self.sound_mode_var.get(), 'sound_file': self.sound_file_var.get().strip(), 'sound_volume': int(self.sound_volume_var.get()), 'overlay_enabled': bool(self.overlay_enabled_var.get()), 'overlay_width': int(self.overlay_width), 'overlay_height': int(self.overlay_height), 'overlay_x': self.overlay_x, 'overlay_y': self.overlay_y, 'overlay_auto_height': bool(self.overlay_auto_height_var.get()), 'overlay_locked': bool(self.overlay_locked_var.get()), 'overlay_opacity': max(OVERLAY_MIN_OPACITY, min(OVERLAY_MAX_OPACITY, float(self.overlay_opacity))), 'overlay_font_size': int(self.overlay_font_size), 'tree_column_widths': self.current_tree_column_widths(), 'sync_offset_seconds': max(0, self.safe_float(self.sync_var.get(), 5)), 'auto_sync': bool(self.auto_sync_var.get()), 'poll_seconds': max(0.2, self.safe_float(self.interval_var.get(), 0.5)), 'core_monitoring_only': bool(self.core_monitoring_only), 'target_sound_enabled': {scope: bool(variable.get()) for scope, variable in self.target_sound_vars.items()}, 'self_target_id': self_target_id, 'self_target_name': self_target_name, 'target_view': self.target_view_var.get() if self.target_view_var.get() in TARGET_VIEW_MODES else TARGET_VIEW_MODES[0], 'pet_monitor_enabled': bool(self.pet_monitor_enabled_var.get()), 'pet_selected_id': self.parse_target_id(self.pet_selected_id_var.get()), 'pet_alert_enabled': bool(self.pet_alert_enabled_var.get()), 'pet_alert_threshold': max(0, min(100, int(self.safe_float(self.pet_alert_threshold_var.get(), PET_ALERT_DEFAULT_THRESHOLD)))), 'auto_resolve_unknown': bool(self.settings.get('auto_resolve_unknown', True))}
         pet_overlay = self.__dict__.get('pet_overlay')
         if pet_overlay is not None and pet_overlay.winfo_exists():
             self.pet_overlay_settings.update(pet_overlay.export_settings())
@@ -4683,7 +4829,7 @@ class RrfMonitorApp(tk.Tk):
             if getattr(self, 'close_after_data_load', False):
                 self._finalize_close()
             return
-        set_status_data(result.names, result.groups, result.source)
+        set_status_data(result.names, result.groups, result.source, efst_codes=result.efst_codes)
         self.status_data_report = result.report
         self.status_data_report_var.set(result.report)
         data_summary_var = self.__dict__.get('data_status_summary_var')
@@ -4902,16 +5048,14 @@ class RrfMonitorApp(tk.Tk):
         columns = ('status', 'name', 'target', 'scope', 'state', 'remaining', 'total', 'source')
         self.tree = ttk.Treeview(table_frame, columns=columns, show='headings', height=12)
         headings = {'status': '狀態 ID', 'name': '名稱', 'target': '目標（名稱／ID）', 'scope': '目標分類', 'state': '狀態', 'remaining': '校正後剩餘', 'total': '總時間', 'source': '事件封包'}
-        widths = {'status': 82, 'name': 210, 'target': 132, 'scope': 96, 'state': 90, 'remaining': 118, 'total': 100, 'source': 92}
+        widths = {'status': 82, 'name': 210, 'target': 132, 'scope': 96, 'state': 150, 'remaining': 118, 'total': 100, 'source': 92}
         for column in columns:
             self.tree.heading(column, text=headings[column])
             width = self.safe_dimension(self.tree_column_widths.get(column), widths[column], 60, 1000)
             self.tree.column(column, width=width, anchor='center', stretch=column in {'name', 'remaining'})
-        self.tree.tag_configure('yellow', background='#FFF4B8', foreground='#5C4700')
-        self.tree.tag_configure('red', background='#FFE0E0', foreground='#760000')
-        self.tree.tag_configure('debuff', background='#F0E3FF', foreground='#54247A')
-        self.tree.tag_configure('neutral', background='#E9F0F5', foreground='#3E5666')
-        self.tree.tag_configure('normal', background='#FFFFFF', foreground='#000000')
+        for level in ('normal', 'yellow', 'red', 'debuff', 'special', 'neutral', 'stale'):
+            _dot, background, foreground = visual_colors(level)
+            self.tree.tag_configure(level, background=background, foreground=foreground)
         self.tree.grid(row=0, column=0, sticky='nsew')
         self.tree.bind('<ButtonRelease-1>', self.on_tree_button_release, add='+')
         tree_y = ttk.Scrollbar(table_frame, orient='vertical', command=self.tree.yview)
@@ -5200,15 +5344,11 @@ class RrfMonitorApp(tk.Tk):
         self.status_job_combobox.configure(values=('全部職業', *tuple((label for label, _name in lineage_entries))))
 
     def release_status_library_memory(self) -> None:
-        """離開狀態頁即釋放可重建的搜尋與職業資料。"""
+        """釋放清單元件；共用索引保留供人物設定與下次開頁使用。"""
         if not self.status_library_ui_built:
             return
         self.status_library_widgets_ready = False
         self.clear_status_options()
-        self.status_library_name_counts.clear()
-        self.status_job_value_map = {'全部職業': '全部職業'}
-        if self.status_job_combobox is not None:
-            self.status_job_combobox.configure(values=('全部職業',))
         release_bundled_job_skill_catalog()
 
     def ensure_pet_ui(self) -> None:
@@ -5222,11 +5362,13 @@ class RrfMonitorApp(tk.Tk):
     def build_status_library_ui(self, status_library_tab: ttk.Frame) -> None:
         """建立單一清單與單筆設定面板；不為每個狀態建立一組 Tk 元件。"""
         status_library_tab.columnconfigure(0, weight=1)
+        for row in range(5):
+            status_library_tab.rowconfigure(row, weight=0)
         status_library_tab.rowconfigure(5, weight=1)
         library_header = ttk.Frame(status_library_tab)
         library_header.grid(row=0, column=0, sticky='ew', pady=(0, 6))
         library_header.columnconfigure(0, weight=1)
-        ttk.Label(library_header, text='重點狀態', font=('Microsoft JhengHei', 11, 'bold')).grid(row=0, column=0, sticky='w')
+        ttk.Label(library_header, text='監控清單', font=('Microsoft JhengHei', 11, 'bold')).grid(row=0, column=0, sticky='w')
         ttk.Label(library_header, textvariable=self.status_selection_summary_var, foreground='#555555').grid(row=0, column=1, sticky='e')
         scope_selector = ttk.Frame(library_header)
         scope_selector.grid(row=1, column=0, columnspan=2, sticky='ew', pady=(6, 0))
@@ -5295,8 +5437,8 @@ class RrfMonitorApp(tk.Tk):
         tree = ttk.Treeview(list_frame, columns=columns, show='headings', selectmode='browse')
         tree.heading('selected', text='已選')
         tree.heading('name', text='狀態名稱')
-        tree.heading('category', text='分類')
-        tree.heading('jobs', text='技能／職業')
+        tree.heading('category', text='效果')
+        tree.heading('jobs', text='相關技能／職業')
         tree.column('selected', width=55, minwidth=45, stretch=False, anchor='center')
         tree.column('name', width=240, minwidth=150, stretch=True, anchor='w')
         tree.column('category', width=110, minwidth=85, stretch=False, anchor='w')
@@ -5310,8 +5452,26 @@ class RrfMonitorApp(tk.Tk):
         tree.bind('<Double-1>', self.toggle_status_tree_selected)
         tree.bind('<space>', self.toggle_status_tree_selected)
         self.status_library_tree = tree
-        detail = ttk.LabelFrame(body, text='所選狀態', padding=10)
-        detail.grid(row=0, column=1, sticky='nsew')
+        detail_box = ttk.LabelFrame(body, text='所選狀態', padding=6)
+        detail_box.grid(row=0, column=1, sticky='nsew')
+        detail_box.columnconfigure(0, weight=1)
+        detail_box.rowconfigure(0, weight=1)
+        detail_canvas = tk.Canvas(detail_box, width=290, height=1, highlightthickness=0)
+        detail_canvas.grid(row=0, column=0, sticky='nsew')
+        detail_scroll = ttk.Scrollbar(detail_box, orient='vertical', command=detail_canvas.yview)
+        detail_scroll.grid(row=0, column=1, sticky='ns')
+        detail_canvas.configure(yscrollcommand=detail_scroll.set)
+        detail = ttk.Frame(detail_canvas)
+        detail_window = detail_canvas.create_window((0, 0), window=detail, anchor='nw')
+        self.status_detail_canvas = detail_canvas
+        detail.bind('<Configure>', lambda _event: detail_canvas.configure(scrollregion=detail_canvas.bbox('all')))
+
+        def resize_detail(event: tk.Event) -> None:
+            detail_canvas.itemconfigure(detail_window, width=event.width)
+            for widget in detail.winfo_children():
+                if isinstance(widget, ttk.Label) and str(widget.cget('wraplength')) not in {'', '0'}:
+                    widget.configure(wraplength=max(100, event.width - 8))
+        detail_canvas.bind('<Configure>', resize_detail)
         detail.columnconfigure(0, weight=1)
         ttk.Label(detail, textvariable=self.status_detail_name_var, font=('Microsoft JhengHei', 11, 'bold'), wraplength=290, justify='left').grid(row=0, column=0, sticky='w')
         ttk.Label(detail, textvariable=self.status_detail_meta_var, foreground='#666666', wraplength=290, justify='left').grid(row=1, column=0, sticky='w', pady=(4, 12))
@@ -5324,6 +5484,16 @@ class RrfMonitorApp(tk.Tk):
             rule_check.grid(row=row, column=0, sticky='w', pady=2)
             self.status_detail_controls.append(rule_check)
         ttk.Label(detail, text='聲音範圍可在人物設定中調整', foreground='#666666', wraplength=290, justify='left').grid(row=7, column=0, sticky='sw', pady=(14, 0))
+
+        def scroll_detail(event: tk.Event) -> str:
+            number = getattr(event, 'num', None)
+            delta = getattr(event, 'delta', 0)
+            direction = -1 if number == 4 or delta > 0 else 1
+            detail_canvas.yview_scroll(direction * max(1, abs(delta) // 120), 'units')
+            return 'break'
+        for widget in (detail_canvas, detail, *detail.winfo_children()):
+            for sequence in ('<MouseWheel>', '<Button-4>', '<Button-5>'):
+                widget.bind(sequence, scroll_detail)
         self.update_status_filter_controls()
         self.populate_status_job_filters()
 
@@ -5497,7 +5667,8 @@ class RrfMonitorApp(tk.Tk):
         self.pet_hint_var.set(data_text if state.pet_id is not None else '收到目前自身寵物的資料後會自動顯示。')
         self.pet_source_var.set(state.source_text)
         self.pet_selection_summary_var.set(state.pet_name or data_text)
-        self.pet_satiety_label.configure(foreground='#A94024' if low else '#202B32' if valid else '#777777')
+        pet_color = ('#8D2830' if state.satiety is not None and state.satiety <= 10 else '#6C480C') if low else '#26384A' if valid else '#536171'
+        self.pet_satiety_label.configure(foreground=pet_color)
         self.pet_satiety_progressbar.configure(value=state.satiety or 0)
         if not self.pet_alert_enabled_var.get():
             alert_text = '聲音提醒已關閉'
@@ -5649,37 +5820,90 @@ class RrfMonitorApp(tk.Tk):
             self.pet_live_observation_key = None
             self.pet_alert_events.clear()
 
+    @serialized_scoped_monitor
+    def ensure_status_library_index(self, states: list[tuple[StatusState, int | None]] | None=None, extra_status_ids: Iterable[int]=()) -> StatusSearchIndex:
+        """依資料世代懶建共用索引，不依賴主清單是否曾建立元件。"""
+        if states is None:
+            states = self.tracker.snapshot()
+        resolver = self.current_policy_resolver()
+        trusted_ids = self.target_tracker.trusted_target_ids()
+        valid, context = self.source_data_status()
+        sync_ms, _sync_label = self.effective_sync_offset()
+        by_scope: dict[str, set[int]] = {}
+        by_target: dict[int, set[int]] = {}
+        observed_ids: set[int] = set()
+        for state, remaining in states:
+            if trusted_ids is not None and state.target_id not in trusted_ids:
+                continue
+            relation = self.target_tracker.relation_for(state.target_id)
+            if relation not in TARGET_SCOPE_ORDER or (self.core_monitoring_only and relation != '自己'):
+                continue
+            policy = resolver.resolve(target_id=state.target_id, relation=relation, target_name=self.target_tracker.target_name(state.target_id) or '')
+            if policy.mode == MODE_OFF or not 0 <= state.status_id <= 65535:
+                continue
+            observed_ids.add(state.status_id)
+            if valid and state.active and (remaining is None or remaining > sync_ms):
+                by_scope.setdefault(relation, set()).add(state.status_id)
+                by_target.setdefault(state.target_id, set()).add(state.status_id)
+        self.status_observed_ids_by_scope = by_scope
+        self.status_observed_ids_by_target = by_target
+        self.status_observation_context = context
+        configured_ids = self.all_scope_status_ids() | set(extra_status_ids)
+        for ids in self.target_status_overrides.values():
+            configured_ids.update(ids)
+        for policy in resolver.name_overrides.values():
+            configured_ids.update(policy.custom_status_ids)
+        if resolver.self_override is not None:
+            configured_ids.update(resolver.self_override.custom_status_ids)
+        retained_ids = {value for value in configured_ids | observed_ids if isinstance(value, int) and (not isinstance(value, bool)) and (0 <= value <= 65535)}
+        retained_unknown_ids = {status_id for status_id in retained_ids if not is_readable_status_name(status_id)}
+        signature = (self.status_option_generation, frozenset(retained_unknown_ids))
+        if signature == self.status_library_index_signature:
+            return self.status_library_index
+        readable_ids = {status_id for status_id in EFST_NAMES if is_readable_status_name(status_id)}
+        option_ids = readable_ids | retained_unknown_ids | {FOCUS_STATUS_ID}
+        records: dict[int, StatusLibraryRecord] = {}
+        for status_id in sorted(option_ids):
+            metadata = RUNTIME_STATUS_METADATA.get(status_id, {})
+            confirmed = is_readable_status_name(status_id)
+            code_changed = metadata.get('review_status') == '代碼變動，待重新核對'
+            records[status_id] = StatusLibraryRecord(status_id=status_id, source_header=2435, name=status_name(status_id, 2435) if confirmed else f'未確認狀態 {status_id}', category=status_library_category(status_id, 2435) if confirmed and (not code_changed) else '其他', jobs=() if code_changed else tuple(status_job_names(status_id)), skills=() if code_changed else tuple(status_skill_names(status_id)), effect_group=status_group(status_id, 2435), consumable_subcategory='' if code_changed else status_consumable_subcategory(status_id, 2435), aliases=(str(EFST_NAMES.get(status_id, '')), *metadata.get('aliases', ()), *tuple((str(value) for value in metadata.get('item_names', ())))), functional_category=str(metadata.get('functional_category', '其他／待確認')), source_tags=tuple((str(value) for value in metadata.get('source_tags', ()))), name_confirmed=confirmed)
+        self.status_library_records = records
+        self.status_library_index = StatusSearchIndex(records.values())
+        self.status_library_index_signature = signature
+        self.status_option_ids = option_ids
+        self.status_option_source_headers = {status_id: 2435 for status_id in option_ids}
+        self.status_unresolved_ids = option_ids - readable_ids
+        self.status_library_name_counts = dict(Counter((record.name for record in records.values())))
+        return self.status_library_index
+
+    def selection_observed_status_ids(self, *, target_id: int | None=None) -> set[int]:
+        """目前身上只取有效且獲授權的觀測，不以已勾選集合篩選。"""
+        if not self.source_data_status()[0]:
+            return set()
+        if target_id is not None:
+            if target_id not in self.target_tracker.trusted_target_ids():
+                return set()
+            return set(self.status_observed_ids_by_target.get(target_id, ()))
+        trusted = self.target_tracker.trusted_target_ids()
+        return {status_id for observed_target, ids in self.status_observed_ids_by_target.items() if observed_target in trusted and self.target_tracker.relation_for(observed_target) == self.current_status_edit_scope() for status_id in ids}
+
     def refresh_status_options(self, states: list[tuple[StatusState, int | None]]) -> None:
-        if self.status_library_tree is None:
-            return
-        observed_ids = {state.status_id for state, _remaining in states}
-        configured_ids = self.all_scope_status_ids()
-        signature = (frozenset(observed_ids), frozenset(configured_ids), self.status_option_generation)
+        index = self.ensure_status_library_index(states)
+        active_ids = self.selection_observed_status_ids()
+        signature = (self.status_library_index_signature, frozenset(active_ids), self.current_status_edit_scope(), self.status_observation_context)
         if signature == self.status_option_signature:
             return
         self.status_option_signature = signature
-        all_status_ids = sorted(set(EFST_NAMES) | observed_ids | configured_ids | {FOCUS_STATUS_ID})
-        readable_ids = sorted((status_id for status_id in all_status_ids if is_readable_status_name(status_id)))
-        self.status_unresolved_ids = set(all_status_ids) - set(readable_ids)
-        source_headers = {status_id: 2435 for status_id in readable_ids}
-        self.status_scope_text_var.set(f'可選狀態：{len(readable_ids)} 項｜目前錄影已出現：{len(observed_ids)} 項｜內部保留未命名／編碼：{len(self.status_unresolved_ids)} 項')
-        category_counts = Counter((status_library_category(status_id, source_headers.get(status_id, 2435)) for status_id in readable_ids))
-        self.status_category_summary_var.set('分類數量：' + '｜'.join((f'{category} {category_counts.get(category, 0)}' for category in STATUS_LIBRARY_CATEGORY_ORDER)) + f'｜未命名／編碼 {len(self.status_unresolved_ids)}（僅供內部解析）')
-        self.status_selection_summary_var.set(f'{self.current_status_edit_scope()}｜可選 {len(readable_ids)} 項；已勾選 {len(self.status_selected_ids)} 項')
+        self.status_scope_text_var.set(f'目前身上 {len(active_ids)} 項｜{self.status_observation_context}')
+        self.status_category_summary_var.set(f'可選 {len(index.records)} 項｜待確認名稱 {len(self.status_unresolved_ids)} 項')
+        self.status_selection_summary_var.set(f'{self.current_status_edit_scope()}｜已勾選 {len(self.status_selected_ids)} 項')
         self.update_selected_status_summary()
-        new_ids = set(readable_ids)
-        if new_ids == self.status_option_ids and source_headers == self.status_option_source_headers:
-            return
-        self.status_option_ids = new_ids
-        self.status_option_source_headers = source_headers
-        self.status_library_records = {status_id: StatusLibraryRecord(status_id=status_id, source_header=source_headers.get(status_id, 2435), name=status_name(status_id, source_headers.get(status_id, 2435)), category=status_library_category(status_id, source_headers.get(status_id, 2435)), jobs=tuple(status_job_names(status_id)), skills=tuple(status_skill_names(status_id)), effect_group=status_group(status_id, source_headers.get(status_id, 2435)), consumable_subcategory=status_consumable_subcategory(status_id, source_headers.get(status_id, 2435)), aliases=(str(EFST_NAMES.get(status_id, '')), *RUNTIME_STATUS_METADATA.get(status_id, {}).get('aliases', ()), *tuple((str(value) for value in RUNTIME_STATUS_METADATA.get(status_id, {}).get('item_names', [])))), functional_category=str(RUNTIME_STATUS_METADATA.get(status_id, {}).get('functional_category', '其他／待確認')), source_tags=tuple((str(value) for value in RUNTIME_STATUS_METADATA.get(status_id, {}).get('source_tags', [])))) for status_id in readable_ids}
-        self.status_library_index = StatusSearchIndex(self.status_library_records.values())
-        available_consumables = available_consumable_subcategories(self.status_library_index)
+        available = available_consumable_subcategories(index)
         if self.status_consumable_combobox is not None:
-            self.status_consumable_combobox.configure(values=available_consumables)
-        if self.status_consumable_subcategory_var.get() not in available_consumables:
-            self.status_consumable_subcategory_var.set(available_consumables[0])
-        self.status_library_name_counts = dict(Counter((record.name for record in self.status_library_records.values())))
+            self.status_consumable_combobox.configure(values=available)
+        if self.status_consumable_subcategory_var.get() not in available:
+            self.status_consumable_subcategory_var.set(available[0])
         if self.status_library_widgets_ready:
             self.rebuild_status_options()
 
@@ -5718,16 +5942,17 @@ class RrfMonitorApp(tk.Tk):
 
     def select_status_player_entry(self, entry: str) -> None:
         """把玩家入口轉成既有輕量索引條件，不建立第二份狀態資料。"""
+        entry = {'已選擇': '已勾選', '其他／搜尋': '全部／搜尋'}.get(entry, entry)
         if entry not in STATUS_LIBRARY_PLAYER_ENTRIES:
             return
+        self.status_filter_var.set('')
+        self.status_job_var.set('全部職業')
+        self.status_job_effect_var.set(JOB_EFFECT_FILTER_ORDER[0])
+        self.status_consumable_subcategory_var.set(CONSUMABLE_SUBCATEGORY_ORDER[0])
         self.status_function_var.set(STATUS_FUNCTION_FILTER_ORDER[0])
-        if entry == '職業技能':
-            self.status_index_mode_var.set('職業技能')
-        elif entry == '已選擇':
-            self.status_index_mode_var.set('已勾選')
-        else:
-            self.status_index_mode_var.set('分類')
-            self.status_category_var.set({'消耗品': '消耗品', '異常狀態': 'DEBUFF', '其他／搜尋': '其他'}[entry])
+        mode, category = self.status_entry_conditions(entry)
+        self.status_index_mode_var.set(mode)
+        self.status_category_var.set(category)
         self.status_page_index = 0
         self.update_status_filter_controls()
         if self.status_library_widgets_ready:
@@ -5787,8 +6012,20 @@ class RrfMonitorApp(tk.Tk):
         """回傳目前搜尋結果；全選操作只作用於畫面上可見的項目。"""
         return set(self.filtered_status_id_order())
 
+    @staticmethod
+    def status_entry_conditions(entry: str) -> tuple[str, str]:
+        if entry in {'職業技能', '目前身上', '已勾選'}:
+            return (entry, '全部分類')
+        return ('分類', {'消耗品': '消耗品', '異常狀態': 'DEBUFF', '其他／待確認': '其他／待確認'}.get(entry, '全部分類'))
+
+    def query_status_selection(self, *, selected_ids: Iterable[int]=(), target_id: int | None=None, **conditions) -> tuple[int, ...]:
+        """主清單與人物設定使用相同資料、條件與即時授權判斷。"""
+        selected_ids = set(selected_ids)
+        index = self.ensure_status_library_index(extra_status_ids=selected_ids)
+        return index.filter(selected_ids=selected_ids, observed_status_ids=self.selection_observed_status_ids(target_id=target_id), **conditions)
+
     def filtered_status_id_order(self) -> tuple[int, ...]:
-        return self.status_library_index.filter(query=self.status_filter_var.get(), mode=self.status_index_mode_var.get(), category=self.status_category_var.get(), job=self.status_job_value_map.get(self.status_job_var.get(), self.status_job_var.get()), effect=self.status_job_effect_var.get(), consumable_subcategory=self.status_consumable_subcategory_var.get(), selected_ids=set(self.status_selected_ids) | {FOCUS_STATUS_ID} if self.status_index_mode_var.get() == '常用狀態' else set(self.status_selected_ids), functional_category=self.status_function_var.get())
+        return self.query_status_selection(query=self.status_filter_var.get(), mode=self.status_index_mode_var.get(), category=self.status_category_var.get(), job=self.status_job_value_map.get(self.status_job_var.get(), self.status_job_var.get()), effect=self.status_job_effect_var.get(), consumable_subcategory=self.status_consumable_subcategory_var.get(), selected_ids=set(self.status_selected_ids) | {FOCUS_STATUS_ID} if self.status_index_mode_var.get() == '常用狀態' else set(self.status_selected_ids), functional_category=self.status_function_var.get())
 
     def sync_tracker_status_filter(self) -> None:
         """更新唯一 policy；狀態事實不再因畫面清單被提前刪除。"""
@@ -5885,16 +6122,18 @@ class RrfMonitorApp(tk.Tk):
         self.status_current_page_ids = page.ids
         query = self.status_filter_var.get().strip()
         mode = self.status_index_mode_var.get()
-        if query:
-            context = f'搜尋「{query}」'
-        elif mode == '職業技能':
+        if mode == '職業技能':
             context = f'{self.status_job_var.get()}｜{self.status_job_effect_var.get()}'
+        elif mode == '目前身上':
+            context = f'目前身上｜{self.status_observation_context}'
         elif mode == '已勾選':
             context = '已勾選'
         else:
-            context = self.status_category_var.get()
+            context = {'全部分類': '全部／搜尋', 'DEBUFF': '異常狀態'}.get(self.status_category_var.get(), self.status_category_var.get())
             if context == '消耗品':
                 context = f'{context}｜{self.status_consumable_subcategory_var.get()}'
+        if query:
+            context = f'{context}｜搜尋「{query}」'
         if self.status_function_var.get() != STATUS_FUNCTION_FILTER_ORDER[0]:
             context = f'{context}｜{self.status_function_var.get()}'
         self.status_page_info_var.set(f'{context}｜共 {page.total_count} 項｜第 {page.page_index + 1}/{page.page_count} 頁')
@@ -5937,6 +6176,8 @@ class RrfMonitorApp(tk.Tk):
             item_id = self.status_tree_row_ids[self.status_detail_status_id]
             if tree.selection() != (item_id,):
                 tree.selection_set(item_id)
+            elif self.__dict__.get('_status_detail_record_signature') != (self.status_detail_status_id, self.status_library_records.get(self.status_detail_status_id)):
+                self.on_status_tree_select()
         elif self.status_detail_status_id is not None:
             selection = tree.selection()
             if selection:
@@ -5957,10 +6198,11 @@ class RrfMonitorApp(tk.Tk):
             jobs = record.jobs
             skills = record.skills
             functional_category = record.functional_category
-        display_name = name
+        display_name = f'{name} [{status_id}]' if self.status_library_name_counts.get(name, 0) > 1 else name
+        effect = record.effect_group if record is not None else status_group(status_id, source_header)
         source_labels = skills or jobs
         source_text = '、'.join(source_labels[:3]) if source_labels else '—'
-        return ('✓' if status_id in self.status_selected_ids else '', display_name, functional_category if functional_category != '其他／待確認' else category, source_text)
+        return ('✓' if status_id in self.status_selected_ids else '', display_name, effect_label(effect), source_text)
 
     def status_id_from_tree_selection(self) -> int | None:
         tree = self.status_library_tree
@@ -5978,6 +6220,7 @@ class RrfMonitorApp(tk.Tk):
             return
         self.status_detail_status_id = status_id
         record = self.status_library_records.get(status_id)
+        self._status_detail_record_signature = (status_id, record)
         source_header = self.status_option_source_headers.get(status_id, 2435)
         name = record.name if record is not None else status_name(status_id, source_header)
         category = record.category if record is not None else status_library_category(status_id, source_header)
@@ -5986,8 +6229,10 @@ class RrfMonitorApp(tk.Tk):
         functional_category = record.functional_category if record is not None else '其他／待確認'
         job_text = '、'.join(jobs) if jobs else '未建立職業索引'
         skill_text = '、'.join(skills) if skills else '未建立技能連結'
+        effect = record.effect_group if record is not None else status_group(status_id, source_header)
+        alert_note = '\n此性質不使用增益到期提醒；立即提示仍可設定。' if effect_nature(effect) != 'buff' else ''
         self.status_detail_name_var.set(name)
-        self.status_detail_meta_var.set(f'分類：{category}｜用途：{functional_category}｜ID：{status_id}\n技能：{skill_text}\n適用職業：{job_text}')
+        self.status_detail_meta_var.set(f'效果：{effect_label(effect)}｜用途：{functional_category}｜ID：{status_id}\n相關技能：{skill_text}\n相關職業：{job_text}{alert_note}')
         self.status_detail_selected_var.set(status_id in self.status_selected_ids)
         rule = self.default_status_alert_rule(status_id)
         rule.update(self.status_alert_rules.get(status_id, {}))
@@ -6057,10 +6302,9 @@ class RrfMonitorApp(tk.Tk):
         return 'break'
 
     def select_status_group(self, group: str, selected: bool) -> None:
-        for status_id in self.filtered_status_ids():
-            source_header = self.status_option_source_headers.get(status_id, 2435)
-            if status_library_category(status_id, source_header) == group:
-                self.set_status_selected(status_id, selected)
+        group_ids = set(self.ensure_status_library_index().filter(category=group))
+        for status_id in set(self.status_current_page_ids) & group_ids:
+            self.set_status_selected(status_id, selected)
         self.save_settings()
         self.rebuild_status_options()
 
@@ -6105,15 +6349,10 @@ class RrfMonitorApp(tk.Tk):
             control.configure(state='disabled')
         self.status_checkbuttons.clear()
         self.status_checks.clear()
-        self.status_option_ids.clear()
-        self.status_option_source_headers.clear()
-        self.status_library_records.clear()
-        self.status_library_index = StatusSearchIndex()
         if self.status_consumable_combobox is not None:
             self.status_consumable_combobox.configure(values=(CONSUMABLE_SUBCATEGORY_ORDER[0],))
         self.status_consumable_subcategory_var.set(CONSUMABLE_SUBCATEGORY_ORDER[0])
         self.status_option_signature = None
-        self.status_unresolved_ids.clear()
         self.status_page_index = 0
         self.status_page_info_var.set('等待狀態資料載入')
         if self.status_page_previous_button is not None:
@@ -6135,8 +6374,6 @@ class RrfMonitorApp(tk.Tk):
 
     def select_all_statuses(self) -> None:
         status_ids = set(self.status_current_page_ids)
-        if len(status_ids) > 20 and (not messagebox.askyesno('確認批次勾選', f'目前這一頁有 {len(status_ids)} 項。\n\n確定全部加入監控嗎？', parent=self)):
-            return
         for status_id in status_ids:
             self.set_status_selected(status_id, True)
         self.sync_tracker_status_filter()
@@ -6505,14 +6742,12 @@ class RrfMonitorApp(tk.Tk):
         dialog.minsize(620, 540)
         dialog.transient(self)
         existing_override = target_id in self.target_status_overrides
-        if not self.status_option_ids:
-            self.refresh_status_options(self.tracker.snapshot())
         self.sync_visible_status_checks()
         relation = self.target_tracker.relation_for(target_id)
         scope_ids = set(self.status_selected_ids if relation == self.current_status_edit_scope() else self.target_scope_status_ids.get(relation, set()))
-        option_ids = sorted(set(self.status_option_ids) | {status_id for status_id in scope_ids if is_readable_status_name(status_id)} | {status_id for status_id in self.target_status_overrides.get(target_id, set()) if is_readable_status_name(status_id)})
         selected_ids = set(self.target_status_overrides.get(target_id, set())) if existing_override else scope_ids
         working_ids = set(selected_ids)
+        self.ensure_status_library_index(extra_status_ids=working_ids)
         page_status_vars: dict[int, tk.BooleanVar] = {}
         follow_global_var = tk.BooleanVar(value=not existing_override)
         display_mode_var = tk.StringVar(value=self.target_display_mode_overrides.get(target_id, TARGET_DISPLAY_MODE_INHERIT))
@@ -6520,17 +6755,24 @@ class RrfMonitorApp(tk.Tk):
         existing_alert_override = self.target_alert_overrides.get(target_name.casefold(), {})
         existing_alert_enabled = existing_alert_override.get('enabled')
         alert_mode_var = tk.StringVar(value='允許提示音' if existing_alert_enabled is True else '此人物靜音' if existing_alert_enabled is False else '跟隨人物類型')
-        category_var = tk.StringVar(value=STATUS_LIBRARY_CATEGORY_ORDER[0])
+        category_var = tk.StringVar(value='全部／搜尋')
+        job_var = tk.StringVar(value='全部職業')
+        effect_var = tk.StringVar(value=JOB_EFFECT_FILTER_ORDER[0])
+        consumable_var = tk.StringVar(value=CONSUMABLE_SUBCATEGORY_ORDER[0])
+        function_var = tk.StringVar(value=STATUS_FUNCTION_FILTER_ORDER[0])
+        job_values = {'全部職業': '全部職業', **dict(job_filter_entries())}
         filter_var = tk.StringVar()
         page_index = 0
         page_info_var = tk.StringVar(value='')
         search_after_id: str | None = None
+        refresh_after_id: str | None = None
+        visible_signature: tuple[object, ...] | None = None
         dialog.columnconfigure(0, weight=1)
         dialog.rowconfigure(2, weight=1)
         header = ttk.LabelFrame(dialog, text='目前人物', padding=8)
         header.grid(row=0, column=0, sticky='ew', padx=10, pady=(10, 6))
         ttk.Label(header, text=f'{self.target_tracker.relation_for(target_id)}｜{self.target_display_name(target_id)}｜{self.format_target_id(target_id)}', font=('Microsoft JhengHei', 10, 'bold')).pack(anchor='w')
-        ttk.Label(header, text='可單獨決定顯示全部、只顯示重點，或不監控；沒有覆寫時跟隨人物類型。', foreground='#666666').pack(anchor='w', pady=(3, 0))
+        ttk.Label(header, text='為此人物選擇監控方式與清單；也可直接跟隨人物類型。', foreground='#666666').pack(anchor='w', pady=(3, 0))
         mode_row = ttk.Frame(header)
         mode_row.pack(fill='x', pady=(5, 0))
         ttk.Label(mode_row, text='顯示模式').pack(side='left')
@@ -6542,12 +6784,23 @@ class RrfMonitorApp(tk.Tk):
         controls = ttk.Frame(dialog)
         controls.grid(row=1, column=0, sticky='ew', padx=10, pady=(0, 6))
         controls.columnconfigure(3, weight=1)
-        ttk.Label(controls, text='分類').grid(row=0, column=0, sticky='w')
-        category_box = ttk.Combobox(controls, width=18, state='readonly', values=STATUS_LIBRARY_CATEGORY_ORDER, textvariable=category_var)
+        ttk.Label(controls, text='入口').grid(row=0, column=0, sticky='w')
+        category_box = ttk.Combobox(controls, width=18, state='readonly', values=STATUS_LIBRARY_PLAYER_ENTRIES, textvariable=category_var)
         category_box.grid(row=0, column=1, sticky='w', padx=(5, 12))
         ttk.Label(controls, text='搜尋').grid(row=0, column=2, sticky='w')
         ttk.Entry(controls, textvariable=filter_var).grid(row=0, column=3, sticky='ew', padx=(5, 5))
         ttk.Button(controls, text='清除', command=lambda: filter_var.set('')).grid(row=0, column=4, sticky='e')
+        ttk.Label(controls, text='職業').grid(row=1, column=0, sticky='w', pady=(4, 0))
+        job_box = ttk.Combobox(controls, textvariable=job_var, values=tuple(job_values), width=18, state='disabled')
+        job_box.grid(row=1, column=1, sticky='ew', padx=(5, 12), pady=(4, 0))
+        effect_box = ttk.Combobox(controls, textvariable=effect_var, values=JOB_EFFECT_FILTER_ORDER, width=12, state='disabled')
+        effect_box.grid(row=1, column=2, columnspan=3, sticky='w', pady=(4, 0))
+        ttk.Label(controls, text='道具用途').grid(row=2, column=0, sticky='w', pady=(4, 0))
+        consumable_box = ttk.Combobox(controls, textvariable=consumable_var, values=CONSUMABLE_SUBCATEGORY_ORDER, width=18, state='disabled')
+        consumable_box.grid(row=2, column=1, sticky='ew', padx=(5, 12), pady=(4, 0))
+        ttk.Label(controls, text='用途').grid(row=2, column=2, sticky='w', pady=(4, 0))
+        function_box = ttk.Combobox(controls, textvariable=function_var, values=STATUS_FUNCTION_FILTER_ORDER, width=18, state='readonly')
+        function_box.grid(row=2, column=3, columnspan=2, sticky='ew', padx=(5, 0), pady=(4, 0))
         body_frame = ttk.Frame(dialog)
         body_frame.grid(row=2, column=0, sticky='nsew', padx=10)
         body_frame.columnconfigure(0, weight=1)
@@ -6559,8 +6812,10 @@ class RrfMonitorApp(tk.Tk):
         ttk.Label(page_controls, textvariable=page_info_var, foreground='#555555').pack(side='left', padx=8)
         next_button = ttk.Button(page_controls, text='下一頁', width=8)
         next_button.pack(side='left')
-        ttk.Button(page_controls, text='全選目前結果', command=lambda: set_visible_statuses(True)).pack(side='right', padx=(6, 0))
-        ttk.Button(page_controls, text='全不選目前結果', command=lambda: set_visible_statuses(False)).pack(side='right')
+        select_page_button = ttk.Button(page_controls, text='勾選本頁', command=lambda: set_visible_statuses(True))
+        select_page_button.pack(side='right', padx=(6, 0))
+        clear_page_button = ttk.Button(page_controls, text='取消本頁', command=lambda: set_visible_statuses(False))
+        clear_page_button.pack(side='right')
         canvas = tk.Canvas(body_frame, highlightthickness=0)
         canvas.grid(row=1, column=0, sticky='nsew')
         scrollbar = ttk.Scrollbar(body_frame, orient='vertical', command=canvas.yview)
@@ -6572,27 +6827,17 @@ class RrfMonitorApp(tk.Tk):
         window_id = canvas.create_window((0, 0), window=inner, anchor='nw')
         inner.bind('<Configure>', lambda _event: canvas.configure(scrollregion=canvas.bbox('all')))
         canvas.bind('<Configure>', lambda event: canvas.itemconfigure(window_id, width=event.width))
-        self.bind_status_scroll(canvas)
-        self.bind_status_scroll(inner)
         footer = ttk.Frame(dialog)
         footer.grid(row=3, column=0, sticky='ew', padx=10, pady=10)
         ttk.Label(footer, text='套用後更新此人物的個別監控清單。', foreground='#666666').pack(side='left')
         ttk.Button(footer, text='取消', command=dialog.destroy).pack(side='right', padx=(6, 0))
 
         def visible_status_ids() -> list[int]:
-            query = filter_var.get().strip().casefold()
-            result: list[int] = []
-            for status_id in option_ids:
-                source_header = self.status_option_source_headers.get(status_id, 2435)
-                category = status_library_category(status_id, source_header)
-                record = self.status_library_records.get(status_id)
-                search_text = record.search_text if record is not None else f'{status_name(status_id, source_header)} {status_id} 0x{status_id:04X} {category}'.casefold()
-                if category == category_var.get() and (not query or query in search_text):
-                    result.append(status_id)
-            return result
+            mode, category = self.status_entry_conditions(category_var.get())
+            return list(self.query_status_selection(query=filter_var.get(), mode=mode, category=category, job=job_values.get(job_var.get(), job_var.get()), effect=effect_var.get(), consumable_subcategory=consumable_var.get(), functional_category=function_var.get(), selected_ids=working_ids, target_id=target_id))
 
         def set_visible_statuses(selected: bool) -> None:
-            for status_id in visible_status_ids():
+            for status_id in paginate_status_ids(visible_status_ids(), page_index, STATUS_LIBRARY_PAGE_SIZE).ids:
                 if selected:
                     working_ids.add(status_id)
                 else:
@@ -6604,9 +6849,11 @@ class RrfMonitorApp(tk.Tk):
                 working_ids.add(status_id)
             else:
                 working_ids.discard(status_id)
+            if category_var.get() == '已勾選':
+                rebuild()
 
         def rebuild() -> None:
-            nonlocal page_index
+            nonlocal page_index, visible_signature
             for child in inner.winfo_children():
                 child.destroy()
             page_status_vars.clear()
@@ -6615,18 +6862,24 @@ class RrfMonitorApp(tk.Tk):
             page_index = min(page_index, total_pages - 1)
             page_start = page_index * STATUS_LIBRARY_PAGE_SIZE
             page_ids = visible_ids[page_start:page_start + STATUS_LIBRARY_PAGE_SIZE]
-            page_info_var.set(f'{category_var.get()}｜共 {len(visible_ids)} 項｜第 {page_index + 1}/{total_pages} 頁')
+            context = f'｜{self.status_observation_context}' if category_var.get() == '目前身上' else ''
+            page_info_var.set(f'{category_var.get()}{context}｜{len(visible_ids)} 項｜{page_index + 1}/{total_pages} 頁')
+            visible_signature = (self.status_library_index_signature, tuple(visible_ids), context)
             previous_button.configure(state='normal' if page_index > 0 else 'disabled')
             next_button.configure(state='normal' if page_index < total_pages - 1 else 'disabled')
+            select_page_button.configure(text=f'勾選本頁 {len(page_ids)} 項')
+            clear_page_button.configure(text=f'取消本頁 {len(page_ids)} 項')
             if not page_ids:
-                ttk.Label(inner, text='沒有符合搜尋條件的可讀名稱狀態').grid(row=0, column=0, columnspan=2, sticky='w', padx=4, pady=4)
+                ttk.Label(inner, text='沒有符合條件的狀態').grid(row=0, column=0, columnspan=2, sticky='w', padx=4, pady=4)
             for index, status_id in enumerate(page_ids):
                 variable = tk.BooleanVar(value=status_id in working_ids)
                 page_status_vars[status_id] = variable
                 source_header = self.status_option_source_headers.get(status_id, 2435)
-                checkbutton = ttk.Checkbutton(inner, text=f'{status_name(status_id, source_header)}  [0x{status_id:04X}]', variable=variable, command=lambda selected_id=status_id, selected_var=variable: update_working_status(selected_id, selected_var))
+                record = self.status_library_records[status_id]
+                label = self.status_library_row_values(status_id)[1]
+                related = '、'.join((record.jobs or record.skills)[:2]) or '—'
+                checkbutton = ttk.Checkbutton(inner, text=f'{label}\n{effect_label(record.effect_group)}｜{related}', variable=variable, command=lambda selected_id=status_id, selected_var=variable: update_working_status(selected_id, selected_var))
                 checkbutton.grid(row=index // 2, column=index % 2, sticky='w', padx=4, pady=3)
-                self.bind_status_scroll(checkbutton)
             inner.update_idletasks()
             canvas.yview_moveto(0)
 
@@ -6685,9 +6938,57 @@ class RrfMonitorApp(tk.Tk):
                 except tk.TclError:
                     pass
             search_after_id = dialog.after(STATUS_SEARCH_DEBOUNCE_MS, reset_dialog_page)
-        category_box.bind('<<ComboboxSelected>>', lambda _event: reset_dialog_page())
+
+        def change_entry() -> None:
+            job_var.set('全部職業')
+            effect_var.set(JOB_EFFECT_FILTER_ORDER[0])
+            consumable_var.set(CONSUMABLE_SUBCATEGORY_ORDER[0])
+            function_var.set(STATUS_FUNCTION_FILTER_ORDER[0])
+            filter_var.set('')
+            job_box.configure(state='readonly' if category_var.get() == '職業技能' else 'disabled')
+            effect_box.configure(state='readonly' if category_var.get() == '職業技能' else 'disabled')
+            consumable_box.configure(state='readonly' if category_var.get() == '消耗品' else 'disabled')
+            reset_dialog_page()
+
+        def refresh_current_data() -> None:
+            nonlocal refresh_after_id
+            refresh_after_id = None
+            if target_id not in self.target_tracker.trusted_target_ids():
+                dialog.destroy()
+                return
+            ids = visible_status_ids()
+            context = f'｜{self.status_observation_context}' if category_var.get() == '目前身上' else ''
+            if (self.status_library_index_signature, tuple(ids), context) != visible_signature:
+                rebuild()
+            refresh_after_id = dialog.after(1000, refresh_current_data)
+
+        def cleanup_dialog(event: tk.Event) -> None:
+            if event.widget is not dialog:
+                return
+            for after_id in (search_after_id, refresh_after_id):
+                if after_id is not None:
+                    try:
+                        dialog.after_cancel(after_id)
+                    except tk.TclError:
+                        pass
+
+        def scroll_dialog(event: tk.Event) -> str:
+            if getattr(event, 'num', None) in (4, 5):
+                units = -1 if event.num == 4 else 1
+            else:
+                delta = getattr(event, 'delta', 0)
+                units = (-1 if delta > 0 else 1) * max(1, abs(delta) // 120)
+            canvas.yview_scroll(units, 'units')
+            return 'break'
+        for sequence in ('<MouseWheel>', '<Button-4>', '<Button-5>'):
+            dialog.bind(sequence, scroll_dialog)
+        dialog.bind('<Destroy>', cleanup_dialog, add='+')
+        category_box.bind('<<ComboboxSelected>>', lambda _event: change_entry())
+        for box in (job_box, effect_box, consumable_box, function_box):
+            box.bind('<<ComboboxSelected>>', lambda _event: reset_dialog_page())
         filter_var.trace_add('write', lambda *_args: schedule_search_rebuild())
         rebuild()
+        refresh_after_id = dialog.after(1000, refresh_current_data)
         try:
             dialog.grab_set()
         except tk.TclError:
@@ -6917,7 +7218,7 @@ class RrfMonitorApp(tk.Tk):
 
     def test_alert_sound(self) -> None:
         """立即測試目前選擇的提示音，不需要等待狀態倒數。"""
-        self.play_alert_sound('yellow', status_name(FOCUS_STATUS_ID, 2435), 30)
+        self.play_alert_sound('yellow', status_name(FOCUS_STATUS_ID, 2435), 30, preview=True)
 
     def on_volume_changed(self, value: str) -> None:
         self.volume_text_var.set(f'{float(value):.0f}%')
@@ -7275,15 +7576,24 @@ class RrfMonitorApp(tk.Tk):
 
     @staticmethod
     def light_colors(level: str) -> tuple[str, str, str]:
-        if level == 'red':
-            return ('#FF5A5A', '#FFE0E0', '#760000')
-        if level == 'yellow':
-            return ('#FFD84D', '#FFF4B8', '#5C4700')
-        if level == 'debuff':
-            return ('#B983FF', '#F0E3FF', '#54247A')
-        if level == 'neutral':
-            return ('#7FA9C0', '#E9F0F5', '#3E5666')
-        return ('#55C878', '#E8F8EC', '#164B26')
+        return visual_colors(level)
+
+    def cancel_alert_audio(self) -> None:
+        """取消尚在播放的 SAPI／WAV；短系統音已播部分無法倒回。"""
+        lock = self.__dict__.setdefault('_alert_audio_lock', threading.RLock())
+        with lock:
+            self._alert_audio_generation = self.__dict__.get('_alert_audio_generation', 0) + 1
+            for process in self.__dict__.pop('_speech_processes', []):
+                try:
+                    if process.poll() is None:
+                        process.terminate()
+                except OSError:
+                    pass
+            if self.__dict__.pop('_wav_alert_playing', False) and winsound is not None:
+                try:
+                    winsound.PlaySound(None, 0)
+                except (OSError, RuntimeError):
+                    pass
 
     @staticmethod
     def chinese_number(value: int) -> str:
@@ -7308,7 +7618,7 @@ class RrfMonitorApp(tk.Tk):
         encoded = base64.b64encode(script.encode('utf-16le')).decode('ascii')
         try:
             process = subprocess.Popen(['powershell.exe', '-NoLogo', '-NoProfile', '-NonInteractive', '-WindowStyle', 'Hidden', '-EncodedCommand', encoded], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, creationflags=getattr(subprocess, 'CREATE_NO_WINDOW', 0))
-            processes = self.__dict__.setdefault('_scoped_speech_processes', [])
+            processes = self.__dict__.setdefault('_speech_processes', [])
             processes[:] = [existing for existing in processes if existing.poll() is None]
             processes.append(process)
         except (OSError, subprocess.SubprocessError):
@@ -7339,7 +7649,31 @@ class RrfMonitorApp(tk.Tk):
         except (AttributeError, TypeError, ValueError, tk.TclError):
             return 100
 
-    def play_alert_sound(self, level: str, status_text: str, threshold_seconds: float, target_text: str='', event_age_seconds: int | None=None) -> None:
+    def play_alert_sound(self, level: str, status_text: str, threshold_seconds: float, target_text: str='', event_age_seconds: int | None=None, *, status_keys: tuple[tuple[int, int], ...]=(), remaining_offset_ms: int=0, expiration_limit_ms: int | None=None, preview: bool=False) -> None:
+        generation = self.__dict__.get('_alert_audio_generation', 0)
+        lock = self.__dict__.setdefault('_alert_audio_lock', threading.RLock())
+        with lock:
+            if generation != self.__dict__.get('_alert_audio_generation', 0):
+                return
+            if not preview and (not self.source_data_status()[0]):
+                return
+            if status_keys:
+                current = {state.key: None if remaining is None else max(0, remaining - remaining_offset_ms) for state, remaining in self.tracker.snapshot() if state.active and (remaining is None or remaining > 0)}
+                live_keys = set(current).intersection(status_keys)
+                if expiration_limit_ms is not None:
+                    live_keys = {key for key in live_keys if current[key] is not None and 0 < current[key] <= expiration_limit_ms}
+                if not live_keys:
+                    return
+                if level == 'expiration_batch':
+                    status_text = f'{self.chinese_number(len(live_keys))}項狀態即將結束，請查看狀態卡片'
+                elif level in {'yellow', 'red'} and len(live_keys) == 1:
+                    remaining = current[next(iter(live_keys))]
+                    if remaining is None or remaining <= 0:
+                        return
+                    threshold_seconds = remaining_seconds(remaining)
+            self._play_alert_sound_now(level, status_text, threshold_seconds, target_text, event_age_seconds)
+
+    def _play_alert_sound_now(self, level: str, status_text: str, threshold_seconds: float, target_text: str='', event_age_seconds: int | None=None) -> None:
         if self.current_sound_volume() <= 0:
             return
         mode = self.sound_mode_var.get()
@@ -7350,11 +7684,11 @@ class RrfMonitorApp(tk.Tk):
                 return
             target_text = self.sanitize_spoken_text(target_text)
             target_prefix = f'{target_text}，' if target_text else ''
-            if level == 'apply_batch':
+            if level in {'apply_batch', 'expiration_batch'}:
                 self.speak_text(status_text)
                 return
             if level == 'apply':
-                apply_text = '剛剛獲得' if event_age_seconds is None else self.format_apply_event_age(event_age_seconds)
+                apply_text = '剛剛生效' if event_age_seconds is None else self.format_apply_event_age(event_age_seconds)
                 self.speak_text(f'{target_prefix}{status_text}，{apply_text}')
                 return
             prefix = '注意，' if level == 'red' else ''
@@ -7367,6 +7701,7 @@ class RrfMonitorApp(tk.Tk):
         try:
             if mode == '自訂 WAV' and sound_file.exists():
                 winsound.PlaySound(str(sound_file), winsound.SND_FILENAME | winsound.SND_ASYNC)
+                self._wav_alert_playing = True
                 return
             if level == 'apply':
                 sound = winsound.MB_ICONEXCLAMATION
@@ -7383,11 +7718,14 @@ class RrfMonitorApp(tk.Tk):
         """顯示新套用事件，並將同一時間的大量提示合併，避免聲音洪水。"""
         if not apply_events:
             return
+        if not self.source_data_status()[0]:
+            return
         now = time.monotonic()
         cutoff = now - max(600.0, APPLY_ALERT_COOLDOWN_SECONDS * 4)
         if len(self.recent_apply_alerts) > 512:
             self.recent_apply_alerts = {key: stamp for key, stamp in self.recent_apply_alerts.items() if stamp >= cutoff}
-        selected_events: list[tuple[str, str, int]] = []
+        selected_events: list[tuple[str, str, int, tuple[int, int]]] = []
+        current_active = {state.key for state, remaining in self.tracker.snapshot() if state.active and (remaining is None or remaining > 0)}
         seen_in_batch: set[tuple[int, int]] = set()
         current_timeline_ms = self.tracker.last_timeline_ms + max(0, int(sync_ms))
         for status_id, target_id, event_timeline_ms in apply_events:
@@ -7397,8 +7735,9 @@ class RrfMonitorApp(tk.Tk):
             seen_in_batch.add(event_key)
             if not self.target_is_selected(target_id):
                 continue
-            if not is_readable_status_name(status_id):
+            if event_key not in current_active:
                 continue
+            self.__dict__.setdefault('_status_live_apply_keys', set()).add(event_key)
             source_header = self.status_option_source_headers.get(status_id, 2435)
             status_text = status_name(status_id, source_header)
             target_text = f'{self.target_tracker.relation_for(target_id)} {self.target_display_name(target_id)}'
@@ -7411,7 +7750,7 @@ class RrfMonitorApp(tk.Tk):
                 continue
             self.recent_apply_alerts[event_key] = now
             if self.alert_rule_for_target(status_id, 'apply', target_id):
-                selected_events.append((status_text, spoken_target_text, event_age_seconds))
+                selected_events.append((status_text, spoken_target_text, event_age_seconds, event_key))
         if self.recent_event_history:
             history_count = len(self.recent_event_history)
             self.latest_event_var.set(f'{self.recent_event_history[0]}（最近 {history_count} 件）')
@@ -7421,10 +7760,10 @@ class RrfMonitorApp(tk.Tk):
             return
         self.last_apply_alert_at = now
         if len(selected_events) == 1:
-            status_text, target_text, event_age_seconds = selected_events[0]
-            self.play_alert_sound('apply', status_text, 0, target_text, event_age_seconds=event_age_seconds)
+            status_text, target_text, event_age_seconds, event_key = selected_events[0]
+            self.play_alert_sound('apply', status_text, 0, target_text, event_age_seconds=event_age_seconds, status_keys=(event_key,))
         else:
-            self.play_alert_sound('apply_batch', f'新套用{self.chinese_number(len(selected_events))}個已勾選狀態，請查看最新事件', 0)
+            self.play_alert_sound('apply_batch', f'新套用{self.chinese_number(len(selected_events))}個已勾選狀態，請查看最新事件', 0, status_keys=tuple((item[3] for item in selected_events)))
 
     @staticmethod
     def estimate_apply_event_age_seconds(current_timeline_ms: int, event_timeline_ms: int) -> int:
@@ -7436,8 +7775,8 @@ class RrfMonitorApp(tk.Tk):
     def format_apply_event_age(event_age_seconds: int) -> str:
         """將事件年齡轉成自然的提示文字，避免出現「約零秒前」。"""
         if int(event_age_seconds) <= 0:
-            return '剛剛獲得'
-        return f'約{RrfMonitorApp.chinese_number(event_age_seconds)}秒前獲得'
+            return '剛剛生效'
+        return f'約{RrfMonitorApp.chinese_number(event_age_seconds)}秒前生效'
 
     def monitoring_is_active(self) -> bool:
         monitor_session = self.__dict__.get('monitor_session')
@@ -7482,6 +7821,8 @@ class RrfMonitorApp(tk.Tk):
     @serialized_scoped_monitor
     def reset_monitoring_engine(self) -> None:
         """由監控執行緒重建解析工作；不呼叫任何 Tkinter 元件。"""
+        self.current_path = None
+        self.reset_status_alert_tracking()
         self._clear_scoped_transient_data()
         self.tracker.reset()
         self.reset_pet_tracking()
@@ -7519,6 +7860,8 @@ class RrfMonitorApp(tk.Tk):
         self._clear_scoped_transient_data()
         if self.__dict__.get('current_path') is None:
             return
+        self.current_path = None
+        self.reset_status_alert_tracking()
         self.tracker.reset()
         self.reset_pet_tracking()
         self.target_tracker.reset()
@@ -7571,6 +7914,7 @@ class RrfMonitorApp(tk.Tk):
             self.monitoring_active.clear()
             self.monitor_reset_requested.set()
             self.monitor_wake_event.set()
+        self.reset_status_alert_tracking()
         self.tracker.reset()
         self.reset_pet_tracking()
         self.target_tracker.reset()
@@ -7630,6 +7974,10 @@ class RrfMonitorApp(tk.Tk):
     @serialized_scoped_monitor
     def rescan(self) -> None:
         """要求監控執行緒安全重建解析狀態；待機時不會讀取 RRF。"""
+        reset = self.__dict__.get('monitor_reset_requested')
+        if reset is not None:
+            reset.set()
+        self.reset_status_alert_tracking()
         self._clear_scoped_transient_data()
         self.tracker.reset()
         self.reset_pet_tracking()
@@ -7769,12 +8117,7 @@ class RrfMonitorApp(tk.Tk):
                 journal.flush()
             except OSError:
                 pass
-        for process in self.__dict__.pop('_scoped_speech_processes', []):
-            try:
-                if process.poll() is None:
-                    process.terminate()
-            except OSError:
-                pass
+        self.cancel_alert_audio()
         self.enqueue_ui_callback(self._clear_scoped_event_ui, critical=True)
 
     def _clear_scoped_event_ui(self) -> None:
@@ -7842,6 +8185,7 @@ class RrfMonitorApp(tk.Tk):
         if not self.monitoring_should_continue():
             return
         if reset_required:
+            self.reset_status_alert_tracking()
             self._clear_scoped_transient_data()
             self.tracker.reset()
             self.reset_pet_tracking()
@@ -8199,7 +8543,7 @@ class RrfMonitorApp(tk.Tk):
         resolver = self.current_policy_resolver()
         self.monitor_session.set_resolver(resolver)
         self.monitor_session.replace_observations(observations, identity_confirmed=lambda target_id: resolver.resolve(target_id=target_id, relation=self.target_tracker.relation_for(target_id), target_name=self.target_tracker.target_name(target_id) or '').mode != MODE_OFF)
-        snapshot = self.monitor_session.snapshot(relation_for=self.target_tracker.relation_for, name_for=self.target_tracker.target_name, internal_status_ids=frozenset(), readable_status_ids=self.current_readable_status_ids())
+        snapshot = self.monitor_session.snapshot(relation_for=self.target_tracker.relation_for, name_for=self.target_tracker.target_name, internal_status_ids=frozenset(), readable_status_ids=None)
         self.monitor_snapshot = snapshot
         return snapshot
 
@@ -8252,6 +8596,10 @@ class RrfMonitorApp(tk.Tk):
             self.tracker.set_allowed_target_ids({resolved_self_id} if resolved_self_id is not None else set())
         states = self.tracker.snapshot()
         monitor_snapshot = self.build_monitor_snapshot(states)
+        source_valid, source_text = self.source_data_status()
+        if not source_valid and self.__dict__.get('_source_render_was_valid', True):
+            self.cancel_alert_audio()
+        self._source_render_was_valid = source_valid
         if self.core_monitoring_only and self.target_tracker.self_id is not None and (not states) and message.startswith('監控中：'):
             summary = '監控中（等待狀態）'
             self.monitor_summary_var.set(summary)
@@ -8274,17 +8622,21 @@ class RrfMonitorApp(tk.Tk):
         self.process_pet_alerts()
         self.process_expiration_alerts(states, sync_ms=sync_ms, yellow_ms=yellow_ms, red_ms=red_ms, yellow_seconds=yellow_seconds, red_seconds=red_seconds)
         display_keys = monitor_snapshot.keys
-        display_states = [item for item in states if item[0].key in display_keys]
-        display_states.sort(key=lambda item: (TARGET_SCOPE_ORDER.index(self.target_tracker.relation_for(item[0].target_id)), item[0].target_id, status_display_priority(item[0].status_id, item[0].source_header), status_name(item[0].status_id, item[0].source_header).casefold(), item[0].status_id))
+        display_states = [item for item in self.status_display_states(states, source_valid) if item[0].key in display_keys]
+        display_states.sort(key=lambda item: self.status_row_sort_key(item[0], item[1]))
         overlay_states: list[tuple[StatusState, int | None, str]] = []
         table_rows: list[tuple[StatusState, str, str, str, str, int | None]] = []
         for state, remaining in display_states:
             adjusted_remaining: int | None = None
             if state.active:
                 if remaining is None:
-                    level = status_visual_level(group=status_group(state.status_id, state.source_header), category=status_library_category(state.status_id, state.source_header), remaining_ms=max(yellow_ms, red_ms) + 1, yellow_ms=yellow_ms, red_ms=red_ms)
+                    level = status_visual_level(group=status_group(state.status_id, state.source_header), category=status_library_category(state.status_id, state.source_header), remaining_ms=None, yellow_ms=yellow_ms, red_ms=red_ms)
                     state_text = '生效中'
                     remaining_text = '生效中'
+                    if not source_valid:
+                        level = 'stale'
+                        state_text = source_text
+                        remaining_text = '上次生效中'
                     self.clear_expiration_alerts(state.key)
                     overlay_states.append((state, None, level))
                     total_text = self.format_duration(state.total_ms) if state.total_ms else '—'
@@ -8294,7 +8646,11 @@ class RrfMonitorApp(tk.Tk):
                 level = status_visual_level(group=status_group(state.status_id, state.source_header), category=status_library_category(state.status_id, state.source_header), remaining_ms=adjusted_remaining, yellow_ms=yellow_ms, red_ms=red_ms)
                 state_text = '啟用' if adjusted_remaining > 0 else '已到期'
                 remaining_text = self.format_duration(adjusted_remaining)
-                if adjusted_remaining <= 0:
+                if not source_valid:
+                    level = 'stale'
+                    state_text = source_text
+                    remaining_text = '上次 ' + remaining_text
+                if adjusted_remaining <= 0 and source_valid:
                     self.clear_expiration_alerts(state.key)
                 if adjusted_remaining > 0:
                     overlay_states.append((state, adjusted_remaining, level))
@@ -8305,17 +8661,13 @@ class RrfMonitorApp(tk.Tk):
                 level = 'normal'
             total_text = self.format_duration(state.total_ms) if state.total_ms else '—'
             table_rows.append((state, state_text, remaining_text, total_text, level, adjusted_remaining if state.active else None))
-        if self.status_sort_var.get() == '狀態優先':
-            table_rows.sort(key=lambda row: (status_name(row[0].status_id, row[0].source_header), TARGET_SCOPE_ORDER.index(self.target_tracker.relation_for(row[0].target_id)), row[0].target_id))
-        elif self.status_sort_var.get() == '剩餘時間':
-            table_rows.sort(key=lambda row: (row[5] if row[5] is not None else 10 ** 12, TARGET_SCOPE_ORDER.index(self.target_tracker.relation_for(row[0].target_id)), row[0].target_id))
         view = self.status_view_var.get()
         visible_rows = []
         for row in table_rows:
             remaining_value = row[5]
-            if view == '啟用中' and row[1] not in {'啟用', '生效中'}:
+            if view == '啟用中' and (not row[0].active or (remaining_value is not None and remaining_value <= 0)):
                 continue
-            if view == '即將到期' and (remaining_value is None or remaining_value <= 0 or remaining_value > yellow_ms):
+            if view == '即將到期' and (not source_valid or remaining_value is None or remaining_value <= 0 or (remaining_value > yellow_ms)):
                 continue
             if view == '已到期／結束' and row[0].active and (remaining_value is None or remaining_value > 0):
                 continue
@@ -8357,7 +8709,15 @@ class RrfMonitorApp(tk.Tk):
                 del self.tree_row_ids[key]
                 self.tree_row_values.pop(key, None)
         for index, (state, state_text, remaining_text, total_text, level, _remaining_value) in enumerate(rows):
-            values = (f'0x{state.status_id:04X}', status_name(state.status_id, state.source_header), self.target_display_name(state.target_id), self.target_tracker.relation_for(state.target_id), state_text if level == 'normal' else f'{state_text}｜{level_label(level)}', remaining_text, total_text, f'0x{state.source_header:04X}')
+            if level == 'stale':
+                display_state = '上次資料'
+            elif state_text in {'啟用', '生效中'}:
+                display_state = {'buff': '增益', 'debuff': '異常', 'special': '特殊'}.get(effect_nature(status_group(state.status_id, state.source_header)), '待確認')
+                if level in {'yellow', 'red'}:
+                    display_state += '｜快到期' if level == 'yellow' else '｜快結束'
+            else:
+                display_state = state_text
+            values = (f'0x{state.status_id:04X}', status_name(state.status_id, state.source_header), self.target_display_name(state.target_id), self.target_tracker.relation_for(state.target_id), display_state, remaining_text, total_text, f'0x{state.source_header:04X}')
             item_id = self.tree_row_ids.get(state.key)
             if item_id is None or not self.tree.exists(item_id):
                 item_id = self.tree.insert('', 'end', values=values, tags=(level,))
@@ -8375,15 +8735,7 @@ class RrfMonitorApp(tk.Tk):
 
     def overlay_light_colors(self, level: str) -> tuple[str, str, str]:
         """白底深字為主，提醒使用淡底與深色文字。"""
-        if level == 'red':
-            return ('#C64242', '#FCE9E8', '#8B2929')
-        if level == 'yellow':
-            return ('#B58618', '#FFF5D6', '#705114')
-        if level == 'debuff':
-            return ('#9362B0', '#F1E8FA', '#59336F')
-        if level == 'neutral':
-            return ('#708392', OVERLAY_BG, OVERLAY_MUTED_TEXT)
-        return ('#3A8C57', OVERLAY_BG, OVERLAY_TEXT)
+        return visual_colors(level)
 
     @staticmethod
     def draw_rounded_rectangle(canvas: tk.Canvas, x1: float, y1: float, x2: float, y2: float, radius: float, **options: object) -> int:
@@ -8636,7 +8988,7 @@ class RrfMonitorApp(tk.Tk):
         for scope in TARGET_SCOPE_ORDER:
             people: list[object] = []
             for target_id in sorted(grouped.get(scope, {})):
-                rendered_rows = tuple(((state.key, status_name(state.status_id, state.source_header), format_overlay_duration(remaining), level) for state, remaining, level in sorted(grouped[scope][target_id], key=lambda item: (item[1] if item[1] is not None else 10 ** 12, status_name(item[0].status_id, item[0].source_header).casefold()))))
+                rendered_rows = tuple(((state.key, f'{effect_label(status_group(state.status_id, state.source_header))}｜{status_name(state.status_id, state.source_header)}' + (f'（{level_label(level)}）' if level in {'yellow', 'red'} else ''), ('上次 ' if level == 'stale' else '') + format_overlay_duration(remaining), level) for state, remaining, level in sorted(grouped[scope][target_id], key=lambda item: self.status_row_sort_key(item[0], item[1]))))
                 people.append((target_id, self.target_display_name(target_id), rendered_rows))
             if people:
                 rendered_groups.append((scope, tuple(people)))
@@ -8644,6 +8996,9 @@ class RrfMonitorApp(tk.Tk):
         counts = {scope: len(grouped.get(scope, {})) for scope in TARGET_SCOPE_ORDER}
         summary_parts = [f'{TARGET_SCOPE_DISPLAY_NAMES.get(scope, scope)} {counts[scope]}' for scope in TARGET_SCOPE_ORDER if counts[scope] > 0]
         summary_text = '｜'.join(summary_parts) or '目前沒有監控中的狀態'
+        source_valid, source_text = self.source_data_status()
+        if not source_valid:
+            summary_text = source_text + '｜' + summary_text
         self.overlay_summary_text = summary_text
         self.overlay_summary_var.set(summary_text)
         groups_model = tuple(rendered_groups)
@@ -8664,7 +9019,7 @@ class RrfMonitorApp(tk.Tk):
     def format_duration(milliseconds: int | None) -> str:
         if milliseconds is None:
             return '—'
-        total_seconds = max(0, int(round(milliseconds / 1000)))
+        total_seconds = remaining_seconds(milliseconds)
         hours, remainder = divmod(total_seconds, 3600)
         minutes, seconds = divmod(remainder, 60)
         if hours:
@@ -8676,6 +9031,7 @@ class RrfMonitorApp(tk.Tk):
         if getattr(self, 'close_finalized', False):
             return
         self.close_finalized = True
+        self.cancel_alert_audio()
         self.close_after_data_load = False
         cancel_requested = self.__dict__.get('catalog_cancel_requested')
         if cancel_requested is not None:

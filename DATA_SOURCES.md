@@ -14,6 +14,8 @@
 
 `EFSTIDs.lua` 與 `stateiconinfo.lua` 是台版 RO 客戶端狀態 ID／圖示表的既有抽取資料，檔頭保留原反編譯工具標記；`runtime_status_index.json` 是供啟動使用的精簡索引；`catalog_manifest.json` 記錄本次內建檔案的校驗值。
 
+`status_reviews.json` 保存按 ID 與 EFST 代碼核對的名稱、用途及效果性質修訂，逐筆附依據；`status_catalog.json` 保留原始值及採納結果。相關職業用於查找，不代表施法者身份。官方其他地區資料僅在效果方向與現有台版描述一致時作為佐證，不套用其他地區數值或宣稱台版逐技能實測。
+
 物品名稱包含 2026-09-07 以台版客戶端 `System/iteminfo_new.lub` 的 `identifiedDisplayName` 欄位核對的更正及補充。RRF 僅用於離線比對 ID 與行為，原始錄影、人物名稱與聊天內容不隨附。名稱存在不表示已證明物品或技能一定觸發某個狀態。
 
 `pet_catalog.json` 另從客戶端 `petinfo.lub` 的中文種類表及逐隻食物表建立關聯，食物中文名稱核對 `iteminfo_new.lub`。未提供名稱或關聯的項目保留缺值；不以名稱猜測食物，也不包含寵物能力或進化資料。

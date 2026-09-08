@@ -58,6 +58,41 @@ def settings_fixture(path: Path):
 
 
 class SettingsFailureTests(unittest.TestCase):
+    def test_unknown_extensions_survive_save_without_reviving_legacy_authority(self):
+        with tempfile.TemporaryDirectory() as folder:
+            path = Path(folder) / "config.json"
+            app = settings_fixture(path)
+            extension = {"nested": [0, "example", False]}
+            app.settings = {
+                "custom_extension": extension,
+                "target_ids": [999], "target_scope_enabled": {"自己": False},
+                "target_status_overrides": {"999": [0]},
+                "alert_policies": {"extension_note": "synthetic"},
+            }
+            mon.RrfMonitorApp.save_settings(app)
+            saved = json.loads(path.read_text(encoding="utf-8"))
+            self.assertEqual(saved["custom_extension"], extension)
+            self.assertEqual(saved["alert_policies"]["extension_note"], "synthetic")
+            self.assertFalse(set(mon.LEGACY_AUTHORITY_KEYS) & saved.keys())
+            self.assertEqual(saved["settings_schema_version"], 2)
+
+    def test_canonical_scope_sound_takes_precedence_and_normalizes_labels(self):
+        result = mon.resolved_target_sound_settings(
+            {"自己": True, "隊伍成員": False}, core_monitoring_only=False,
+            policy_scopes={"self": False, "party": True})
+        self.assertFalse(result["自己"])
+        self.assertTrue(result["隊伍成員"])
+        fallback = mon.resolved_target_sound_settings(
+            {"self": False, "隊伍成員": True}, core_monitoring_only=False,
+            policy_scopes={"自己": True})
+        self.assertTrue(fallback["自己"])
+        self.assertTrue(fallback["隊伍成員"])
+
+    def test_core_sound_scope_keeps_explicit_self_mute_and_restricts_other_scopes(self):
+        result = mon.resolved_target_sound_settings(
+            {}, core_monitoring_only=True, policy_scopes={"self": False, "party": True})
+        self.assertFalse(any(result.values()))
+
     def test_partial_temporary_write_preserves_original_and_previous_backup(self):
         with tempfile.TemporaryDirectory() as folder:
             path = Path(folder) / "config.json"
@@ -166,6 +201,7 @@ class SettingsFailureTests(unittest.TestCase):
 
         app = SimpleNamespace(
             close_finalized=False, close_after_data_load=False, running=True,
+            cancel_alert_audio=mock.Mock(),
             dismiss_close_choice_dialog=mock.Mock(),
             monitor_session=SimpleNamespace(shutdown=mock.Mock()),
             settings_save_job=None, overlay_save_job=None,
@@ -177,6 +213,7 @@ class SettingsFailureTests(unittest.TestCase):
         mon.RrfMonitorApp._finalize_close(app)
         self.assertTrue(app.close_finalized)
         self.assertFalse(app.running)
+        app.cancel_alert_audio.assert_called_once()
         app.monitor_session.shutdown.assert_called_once()
         app.log_event.assert_called_once()
         self.assertIn("synthetic UI read failure", app.log_event.call_args.args[0])

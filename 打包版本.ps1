@@ -1,4 +1,4 @@
-﻿param([string]$Version = "1.6.5", [string]$OutputDirectory = "dist")
+﻿param([string]$Version = "1.6.6", [string]$OutputDirectory = "dist")
 $ErrorActionPreference = "Stop"
 $projectRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $candidates = @((Join-Path $env:LocalAppData "Programs\Python\Python313\python.exe"),

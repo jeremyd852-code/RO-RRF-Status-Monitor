@@ -10,6 +10,9 @@ from types import MappingProxyType
 from typing import Iterable, Mapping
 
 from catalog.schema import CatalogManifest, TWRO_GAME_ID, read_json_object
+from catalog.effect_reviews import EffectReviews, load_effect_reviews
+
+_DEFAULT_REVIEWS = object()
 
 
 def _freeze_int_text(values: Mapping[int, str]) -> Mapping[int, str]:
@@ -38,6 +41,8 @@ class RuntimeCatalogSnapshot:
     source: str
     manifest_valid: bool = True
     manifest_errors: tuple[str, ...] = ()
+    review_conflicts: tuple[str, ...] = ()
+    efst_codes: Mapping[int, str] | None = None
 
     def readable_status_name(self, status_id: int) -> str | None:
         value = self.status_names.get(int(status_id))
@@ -45,13 +50,21 @@ class RuntimeCatalogSnapshot:
 
 
 class CatalogRepository:
-    def __init__(self, snapshot: RuntimeCatalogSnapshot) -> None:
+    def __init__(self, snapshot: RuntimeCatalogSnapshot,
+                 reviews: EffectReviews | None | object = _DEFAULT_REVIEWS) -> None:
         self._lock = threading.RLock()
         self._snapshot = snapshot
+        self._reviews = load_effect_reviews() if reviews is _DEFAULT_REVIEWS else reviews
+        codes = snapshot.efst_codes
+        if codes is None:
+            codes = self._reviews.code_map if self._reviews is not None else {}
+        self._code_map = dict(codes)
 
     @classmethod
     def from_data_dir(cls, data_dir: Path) -> "CatalogRepository":
-        return cls(load_bundled_snapshot(data_dir))
+        reviews = (load_effect_reviews(data_dir)
+                   if (data_dir / "status_reviews.json").is_file() else None)
+        return cls(load_bundled_snapshot(data_dir), reviews)
 
     def snapshot(self) -> RuntimeCatalogSnapshot:
         with self._lock:
@@ -66,6 +79,8 @@ class CatalogRepository:
                 source=current.source,
                 manifest_valid=current.manifest_valid,
                 manifest_errors=current.manifest_errors,
+                review_conflicts=current.review_conflicts,
+                efst_codes=current.efst_codes,
             )
 
     def replace(
@@ -77,19 +92,37 @@ class CatalogRepository:
         pet_names: Mapping[int, str],
         pet_food_item_ids: Iterable[int],
         source: str,
+        efst_codes: Mapping[int, str] | None = None,
     ) -> RuntimeCatalogSnapshot:
         with self._lock:
             current = self._snapshot
+            names = dict(status_names)
+            groups = dict(status_groups)
+            self._code_map.update(efst_codes or {})
+            conflicts = (self._reviews.apply(names, groups, efst_codes=self._code_map)
+                         if self._reviews is not None else ())
+            for conflict in conflicts:
+                if conflict.status_id is not None:
+                    groups[conflict.status_id] = "未分類"
+            if self._reviews is not None:
+                # A different code at an old ID is a different identity. Neither
+                # an old reviewed value nor its original icon color is evidence
+                # about the replacement. Retain this conflict across deltas.
+                for status_id, expected in self._reviews.code_map.items():
+                    if self._code_map.get(status_id) != expected:
+                        groups[status_id] = "未分類"
             self._snapshot = RuntimeCatalogSnapshot(
                 generation=current.generation + 1,
-                status_names=_freeze_int_text(status_names),
-                status_groups=_freeze_int_text(status_groups),
+                status_names=_freeze_int_text(names),
+                status_groups=_freeze_int_text(groups),
                 item_names=_freeze_int_text(item_names),
                 pet_names=_freeze_int_text(pet_names),
                 pet_food_item_ids=frozenset(int(value) for value in pet_food_item_ids),
                 source=str(source),
                 manifest_valid=current.manifest_valid,
                 manifest_errors=current.manifest_errors,
+                review_conflicts=tuple(str(conflict) for conflict in conflicts),
+                efst_codes=_freeze_int_text(self._code_map),
             )
             return self._snapshot
 
@@ -102,6 +135,7 @@ class CatalogRepository:
         pet_names: Mapping[int, str] | None = None,
         pet_food_item_ids: Iterable[int] = (),
         source: str = "",
+        efst_codes: Mapping[int, str] | None = None,
     ) -> RuntimeCatalogSnapshot:
         with self._lock:
             current = self._snapshot
@@ -122,6 +156,7 @@ class CatalogRepository:
                 pet_names=merged_pet_names,
                 pet_food_item_ids=merged_food_ids,
                 source=source or current.source,
+                efst_codes=efst_codes,
             )
 
 
@@ -199,6 +234,17 @@ def load_bundled_snapshot(data_dir: Path) -> RuntimeCatalogSnapshot:
         except (OSError, TypeError, ValueError, json.JSONDecodeError):
             pass
 
+    review_conflicts = ()
+    code_map = {int(key): str(value["efst_code"]) for key, value in records.items()
+                if isinstance(value, dict) and value.get("efst_code")}
+    if (root / "status_reviews.json").is_file():
+        reviews = load_effect_reviews(root)
+        code_map = reviews.code_map
+        review_conflicts = reviews.apply(status_names, status_groups, records)
+        for conflict in review_conflicts:
+            if conflict.status_id is not None:
+                status_groups[conflict.status_id] = "未分類"
+
     manifest_valid = True
     manifest_errors: tuple[str, ...] = ()
     manifest_path = root / "catalog_manifest.json"
@@ -217,7 +263,9 @@ def load_bundled_snapshot(data_dir: Path) -> RuntimeCatalogSnapshot:
         item_names=_freeze_int_text(item_names),
         pet_names=_freeze_int_text(pet_names),
         pet_food_item_ids=frozenset(food_ids),
-        source="1.6.5 內建台版資料",
+        source="內建台版資料",
         manifest_valid=manifest_valid,
         manifest_errors=manifest_errors,
+        review_conflicts=tuple(str(conflict) for conflict in review_conflicts),
+        efst_codes=_freeze_int_text(code_map),
     )

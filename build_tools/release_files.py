@@ -1,6 +1,11 @@
 """Explicit portable source/data allowlists shared by staging and package checks."""
 from pathlib import Path
-VERSION = '1.6.5'
+import sys
+ROOT = Path(__file__).resolve().parents[1]
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
+from app.version import APP_VERSION
+VERSION = APP_VERSION
 SOURCE_FILES = {
     '.gitattributes',
     '.gitignore',
@@ -9,6 +14,7 @@ SOURCE_FILES = {
     'app/__init__.py',
     'app/bootstrap.py',
     'app/lifecycle.py',
+    'app/version.py',
     'build_tools/build_catalog_manifest.py',
     'build_tools/build_release.py',
     'build_tools/build_runtime_status_index.py',
@@ -16,6 +22,7 @@ SOURCE_FILES = {
     'build_tools/release_files.py',
     'catalog/__init__.py',
     'catalog/development_store.py',
+    'catalog/effect_reviews.py',
     'catalog/pets.py',
     'catalog/repository.py',
     'catalog/schema.py',
@@ -41,20 +48,24 @@ SOURCE_FILES = {
     'pyinstaller_hooks/pre_find_module_path/hook-tkinter.py',
     'release-info.json',
     'rrf_monitor.py',
+    'tests/test_effect_catalog_v166.py',
     'tests/test_final_core_regressions.py',
     'tests/test_final_settings_regressions.py',
+    'tests/test_monitoring_v166.py',
     'tests/test_pet_alerts.py',
     'tests/test_pet_catalog.py',
     'tests/test_pet_feature_integration.py',
     'tests/test_pet_snapshot.py',
     'tests/test_scope_boundaries.py',
+    'tests/test_selection_v166.py',
+    'tests/test_status_alerts_v166.py',
     '使用說明.txt',
     '啟動監控器.bat',
     '啟動監控器.vbs',
     '打包版本.bat',
     '打包版本.ps1',
 }
-DATA_FILES = {'data/' + name for name in ('EFSTIDs.lua', 'stateiconinfo.lua', 'runtime_status_index.json', 'catalog_manifest.json', 'status_catalog.json', 'client_catalog.json', 'status_classification.json', 'pet_catalog.json', 'job_status_index.json', 'job_skill_catalog.json', '可擴充資料庫.json')}
+DATA_FILES = {'data/' + name for name in ('EFSTIDs.lua', 'stateiconinfo.lua', 'runtime_status_index.json', 'catalog_manifest.json', 'status_catalog.json', 'status_reviews.json', 'client_catalog.json', 'status_classification.json', 'pet_catalog.json', 'job_status_index.json', 'job_skill_catalog.json', '可擴充資料庫.json')}
 
 def package_file_mapping() -> dict[str, str]:
     """Map executable-package data to its verified source files."""

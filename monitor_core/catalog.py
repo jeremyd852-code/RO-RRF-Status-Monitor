@@ -25,13 +25,14 @@ class StatusLibraryRecord:
     aliases: tuple[str, ...] = ()
     functional_category: str = ""
     source_tags: tuple[str, ...] = ()
+    name_confirmed: bool = True
     search_text: str = field(init=False, repr=False)
 
     def __post_init__(self) -> None:
         # 搜尋文字只在資料快照建立時整理一次，不在每次輸入時重新拼接。
         normalized = (
             f"{self.name} {self.status_id} 0x{self.status_id:04X} "
-            f"{self.category} {' '.join(self.jobs)} {' '.join(self.skills)} "
+            f"{self.category} {self.effect_group} {' '.join(self.jobs)} {' '.join(self.skills)} "
             f"{self.consumable_subcategory} {' '.join(self.aliases)} "
             f"{self.functional_category} {' '.join(self.source_tags)}"
         ).casefold()
@@ -99,14 +100,15 @@ class StatusSearchIndex:
     def filter(
         self,
         *,
-        query: str,
-        mode: str,
-        category: str,
-        job: str,
-        effect: str,
-        consumable_subcategory: str,
-        selected_ids: set[int],
+        query: str = "",
+        mode: str = "分類",
+        category: str = "全部分類",
+        job: str = "全部職業",
+        effect: str = "全部效果",
+        consumable_subcategory: str = "全部消耗品",
+        selected_ids: Iterable[int] = (),
         functional_category: str = "全部用途",
+        observed_status_ids: Iterable[int] = (),
     ) -> tuple[int, ...]:
         normalized_query = query.strip().casefold()
         candidates = set(self.all_ids)
@@ -131,7 +133,9 @@ class StatusSearchIndex:
             candidates.intersection_update(selected_ids)
         elif mode == "常用狀態":
             candidates.intersection_update(selected_ids)
-        elif not normalized_query:
+        elif mode == "目前身上":
+            candidates.intersection_update(observed_status_ids)
+        else:
             if category == "經驗／掉寶":
                 candidates.intersection_update(
                     set(self.by_category.get("經驗", ()))
@@ -142,13 +146,36 @@ class StatusSearchIndex:
                 for indexed_ids in self.by_consumable.values():
                     consumable_ids.update(indexed_ids)
                 candidates.intersection_update(consumable_ids)
+            elif category in {"BUFF", "DEBUFF"}:
+                candidates.intersection_update(
+                    self.by_effect.get("增益" if category == "BUFF" else "減益", ())
+                )
+            elif category == "其他／待確認":
+                candidates.intersection_update(
+                    status_id for status_id, record in self.records.items()
+                    if not record.name_confirmed or record.category == "其他"
+                    or record.effect_group not in {"增益", "減益", "主要監控"}
+                )
             elif category != "全部分類":
                 candidates.intersection_update(self.by_category.get(category, ()))
             if category == "消耗品" and consumable_subcategory != "全部消耗品":
                 candidates.intersection_update(
                     self.by_consumable.get(consumable_subcategory, ())
                 )
-        if normalized_query:
+        requested_id = None
+        if normalized_query.isdecimal():
+            try:
+                requested_id = int(normalized_query, 10)
+            except ValueError:
+                requested_id = -1
+        elif normalized_query.startswith("0x") and len(normalized_query) > 2:
+            try:
+                requested_id = int(normalized_query, 16)
+            except ValueError:
+                pass
+        if requested_id is not None:
+            candidates.intersection_update((requested_id,))
+        elif normalized_query:
             candidates = {
                 status_id
                 for status_id in candidates
@@ -181,6 +208,7 @@ def filter_status_records(
     consumable_subcategory: str,
     selected_ids: set[int],
     functional_category: str = "全部用途",
+    observed_status_ids: Iterable[int] = (),
 ) -> tuple[int, ...]:
     """相容入口；單次使用可直接建立輕量索引。"""
 
@@ -193,6 +221,7 @@ def filter_status_records(
         consumable_subcategory=consumable_subcategory,
         selected_ids=selected_ids,
         functional_category=functional_category,
+        observed_status_ids=observed_status_ids,
     )
 
 

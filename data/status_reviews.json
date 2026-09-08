@@ -1,0 +1,939 @@
+{
+  "basis": "名稱、用途、效果性質、技能關聯分欄覆核；效果以受術者為準。台版客戶端說明是本地來源；1150另有日本官方受術者語意佐證，非台版實機測試。",
+  "game_id": "twro",
+  "reviewed_on": "2026-09-08",
+  "schema_version": 1,
+  "skill_mapping_note": "同中文名稱或去掉職業前綴後相同不能建立交叉關聯。WS_CARTBOOST 尚無 RRF 施放確認；其餘三筆具有同 target 的 ACK／狀態配對，並非宣稱每次效果皆由該技能產生。",
+  "skill_status_overrides": {
+    "2478": {
+      "rrf_verified": true,
+      "skill_code": "GN_CARTBOOST",
+      "status_ids": [
+        461
+      ]
+    },
+    "357": {
+      "rrf_verified": true,
+      "skill_code": "LK_CONCENTRATION",
+      "status_ids": [
+        105
+      ]
+    },
+    "387": {
+      "rrf_verified": false,
+      "skill_code": "WS_CARTBOOST",
+      "status_ids": [
+        118
+      ]
+    },
+    "45": {
+      "rrf_verified": true,
+      "skill_code": "AC_CONCENTRATION",
+      "status_ids": [
+        3
+      ]
+    }
+  },
+  "statuses": {
+    "0": {
+      "client_descriptions": [
+        "挑釁(Provoke)",
+        "%s",
+        "防禦率下降",
+        "攻擊力增加"
+      ],
+      "effect_basis": "台版說明同時含利弊、持續代價或隨機增減，不把單一片段當純增益。",
+      "effect_group": "開關／特殊",
+      "effect_note": "複合效果／需情境",
+      "efst_code": "EFST_PROVOKE",
+      "raw_effect_group": "增益",
+      "raw_title_color": "COLOR_TITLE_BUFF",
+      "review_status": "reviewed"
+    },
+    "10": {
+      "client_descriptions": [
+        "天使之賜福(Blessing)",
+        "%s",
+        "DEX, INT, STR增加",
+        "使用後可從詛咒或石化狀態恢復"
+      ],
+      "efst_code": "EFST_BLESSING",
+      "functional_category": "能力值",
+      "purpose_basis": "目前台版 StateIcon 完整說明；辨識持續效果，與消耗資源、瞬間解除狀態及英文子字串分開。"
+    },
+    "1033": {
+      "client_descriptions": [
+        "攻擊速度增加",
+        "%s",
+        "攻擊後延遲-10%"
+      ],
+      "effect_note": "",
+      "efst_code": "EFST_ASPD_POPCORN",
+      "functional_category": "移動／行動／施法",
+      "purpose_basis": "本地說明為攻擊後延遲 -10%，是攻擊速度修改，非等待再使用狀態。",
+      "raw_effect_group": "增益",
+      "raw_title_color": "COLOR_TITLE_BUFF",
+      "review_status": "reviewed"
+    },
+    "107": {
+      "client_descriptions": [],
+      "effect_basis": "本地缺少可讀說明與受術情境，保留未知，不憑技能代碼指定性質。",
+      "effect_group": "未分類",
+      "effect_note": "尚無足夠效果對照",
+      "efst_code": "EFST_BERSERK",
+      "raw_effect_group": "未分類",
+      "raw_title_color": null,
+      "review_status": "reviewed"
+    },
+    "1107": {
+      "client_descriptions": [
+        "還擊狀態",
+        "%s",
+        "可使用",
+        "反擊斬"
+      ],
+      "efst_code": "EFST_WEAPONBLOCK_ON",
+      "functional_category": "姿態／開關／特殊",
+      "purpose_basis": "目前台版 StateIcon 完整說明；辨識持續效果，與消耗資源、瞬間解除狀態及英文子字串分開。"
+    },
+    "1119": {
+      "aliases": [
+        "打怪時",
+        "EFST_EXCLUSIVE_RECEIVEITEM"
+      ],
+      "display_name_override": "基本掉寶率增加",
+      "efst_code": "EFST_EXCLUSIVE_RECEIVEITEM",
+      "name_basis": "將目前客戶端分行效果整理為可讀名稱，並非宣稱是官方獨立標題。相同名稱的不同 ID 保持獨立。"
+    },
+    "112": {
+      "client_descriptions": [
+        "%s",
+        "套用地面技能的效果"
+      ],
+      "effect_basis": "EFST_GROUNDMAGIC 的 MAGIC 含 AGI；說明僅稱套用地面技能效果，未給能力值效果。",
+      "effect_group": "未分類",
+      "effect_note": "說明不足以定性；撤回英文片段的能力值推定，等待具體效果對照。",
+      "efst_code": "EFST_GROUNDMAGIC",
+      "functional_category": "其他／待確認",
+      "purpose_basis": "EFST_GROUNDMAGIC 的 MAGIC 含 AGI；說明僅稱套用地面技能效果，未給能力值效果。",
+      "raw_effect_group": "",
+      "raw_title_color": null,
+      "review_status": "reviewed"
+    },
+    "1150": {
+      "client_descriptions": [
+        "致命放射",
+        "%s",
+        "解除魔法無效能力"
+      ],
+      "effect_basis": "台版說明為解除魔法無效能力。日本官方 AG_DEADLY_PROJECTION 明載對敵施加該狀態，阻止其部分免受魔法效果發動；以受術者失去保護判為減益。DEF 不得由 DEFEASANCE 命中。",
+      "effect_group": "減益",
+      "effect_note": "日本官方僅佐證受術者語意；未採用日版秒數或傷害，不宣稱台版實測。",
+      "efst_code": "EFST_DEADLY_DEFEASANCE",
+      "evidence_sources": [
+        {
+          "accessed_on": "2026-09-08",
+          "does_not_verify": "台版目前傷害、秒數、實際施放者或每次技能關聯",
+          "region": "jRO",
+          "supports": "對敵施加狀態；部分免受魔法效果失效",
+          "title": "日本官方 RO 工具：デッドリープロジェクション",
+          "url": "https://rotool.gungho.jp/skill/AG_DEADLY_PROJECTION"
+        }
+      ],
+      "functional_category": "負面／異常狀態",
+      "purpose_basis": "台版說明為解除魔法無效能力。日本官方 AG_DEADLY_PROJECTION 明載對敵施加該狀態，阻止其部分免受魔法效果發動；以受術者失去保護判為減益。DEF 不得由 DEFEASANCE 命中。",
+      "raw_effect_group": "增益",
+      "raw_title_color": "COLOR_TITLE_BUFF",
+      "review_status": "reviewed"
+    },
+    "1172": {
+      "client_descriptions": [
+        "死侍武器",
+        "%s",
+        "持續時間內召喚劍氣體",
+        "近距離普攻時劍氣體產生追加攻擊"
+      ],
+      "efst_code": "EFST_SERVANTWEAPON",
+      "functional_category": "攻擊／傷害／命中",
+      "purpose_basis": "目前台版 StateIcon 完整說明；辨識持續效果，與消耗資源、瞬間解除狀態及英文子字串分開。"
+    },
+    "1203": {
+      "client_descriptions": [
+        "攻擊架式",
+        "%s",
+        "裝備攻擊力增加",
+        "物理防禦力減少"
+      ],
+      "effect_basis": "台版說明同時含利弊、持續代價或隨機增減，不把單一片段當純增益。",
+      "effect_group": "開關／特殊",
+      "effect_note": "複合效果／需情境",
+      "efst_code": "EFST_ATTACK_STANCE",
+      "raw_effect_group": "增益",
+      "raw_title_color": "COLOR_TITLE_BUFF",
+      "review_status": "reviewed"
+    },
+    "1212": {
+      "client_descriptions": [
+        "火災",
+        "%s",
+        "火屬性狀態",
+        "定期減少HP"
+      ],
+      "effect_basis": "台版 StateIcon 對受術者列出限制、能力減少或持續損失；不以原始 COLOR_TITLE_BUFF 或職業關聯推定有利。",
+      "effect_group": "減益",
+      "effect_note": "",
+      "efst_code": "EFST_HANDICAPSTATE_CONFLAGRATION",
+      "functional_category": "負面／異常狀態",
+      "purpose_basis": "台版 StateIcon 對受術者列出限制、能力減少或持續損失；不以原始 COLOR_TITLE_BUFF 或職業關聯推定有利。",
+      "raw_effect_group": "增益",
+      "raw_title_color": "COLOR_TITLE_BUFF",
+      "review_status": "reviewed"
+    },
+    "1217": {
+      "client_descriptions": [
+        "回彈神盾",
+        "%s",
+        "透過犧牲減少所受傷害的狀態"
+      ],
+      "effect_note": "",
+      "efst_code": "EFST_REBOUND_S",
+      "functional_category": "防禦／減傷／迴避",
+      "purpose_basis": "說明為透過犧牲減少所受傷害，屬受傷減少；目前僅命中泛用「傷害」。",
+      "raw_effect_group": "增益",
+      "raw_title_color": "COLOR_TITLE_BUFF",
+      "review_status": "reviewed"
+    },
+    "1222": {
+      "client_descriptions": [
+        "末日審判",
+        "%s",
+        "放逐攻擊傷害增加",
+        "加農砲攻擊傷害增加"
+      ],
+      "efst_code": "EFST_SPEAR_SCAR",
+      "functional_category": "攻擊／傷害／命中",
+      "purpose_basis": "目前台版 StateIcon 完整說明；辨識持續效果，與消耗資源、瞬間解除狀態及英文子字串分開。"
+    },
+    "1226": {
+      "client_descriptions": [
+        "迷惑魅影",
+        "%s",
+        "有機率賦予對象",
+        "所受近距離物理傷害增加效果"
+      ],
+      "efst_code": "EFST_SHADOW_WEAPON",
+      "functional_category": "負面／異常狀態",
+      "purpose_basis": "目前台版 StateIcon 完整說明；辨識持續效果，與消耗資源、瞬間解除狀態及英文子字串分開。"
+    },
+    "1227": {
+      "client_descriptions": [
+        "全心奉獻",
+        "%s",
+        "SPL, WIS, STA增加"
+      ],
+      "efst_code": "EFST_RELIGIO",
+      "functional_category": "能力值",
+      "purpose_basis": "目前台版 StateIcon 完整說明；辨識持續效果，與消耗資源、瞬間解除狀態及英文子字串分開。"
+    },
+    "1242": {
+      "client_descriptions": [
+        "卸除影子",
+        "%s",
+        "無法裝備影子裝備的狀態"
+      ],
+      "effect_basis": "SHADOW_STRIP 含 STR；本地說明為無法裝備影子裝備，並非 STR／能力值效果。 台版 StateIcon 對受術者列出限制、能力減少或持續損失；不以原始 COLOR_TITLE_BUFF 或職業關聯推定有利。",
+      "effect_group": "減益",
+      "effect_note": "",
+      "efst_code": "EFST_SHADOW_STRIP",
+      "functional_category": "負面／異常狀態",
+      "purpose_basis": "SHADOW_STRIP 含 STR；本地說明為無法裝備影子裝備，並非 STR／能力值效果。 台版 StateIcon 對受術者列出限制、能力減少或持續損失；不以原始 COLOR_TITLE_BUFF 或職業關聯推定有利。",
+      "raw_effect_group": "增益",
+      "raw_title_color": "COLOR_TITLE_BUFF",
+      "review_status": "reviewed"
+    },
+    "1244": {
+      "client_descriptions": [
+        "萬丈深淵",
+        "%s",
+        "持續時間內召喚深淵球體",
+        "一般物理攻擊時，球體攻擊"
+      ],
+      "efst_code": "EFST_ABYSSFORCEWEAPON",
+      "functional_category": "攻擊／傷害／命中",
+      "purpose_basis": "目前台版 StateIcon 完整說明；辨識持續效果，與消耗資源、瞬間解除狀態及英文子字串分開。"
+    },
+    "125": {
+      "client_descriptions": [
+        "巧打(Joint Beat)",
+        "%s",
+        "依受損的關節",
+        "有以下狀態"
+      ],
+      "effect_basis": "EFST_JOINTBEAT 的 JOINT 含 INT；說明僅稱依受損關節有以下狀態，不足以指定能力值分類。",
+      "effect_group": "未分類",
+      "effect_note": "說明不足以定性；撤回英文片段的能力值推定，等待具體效果對照。",
+      "efst_code": "EFST_JOINTBEAT",
+      "functional_category": "其他／待確認",
+      "purpose_basis": "EFST_JOINTBEAT 的 JOINT 含 INT；說明僅稱依受損關節有以下狀態，不足以指定能力值分類。",
+      "raw_effect_group": "增益",
+      "raw_title_color": "COLOR_TITLE_BUFF",
+      "review_status": "reviewed"
+    },
+    "1259": {
+      "client_descriptions": [
+        "葛帔尼亞夜曲",
+        "%s",
+        "魔法抗性減少"
+      ],
+      "effect_basis": "台版 StateIcon 對受術者列出限制、能力減少或持續損失；不以原始 COLOR_TITLE_BUFF 或職業關聯推定有利。",
+      "effect_group": "減益",
+      "effect_note": "",
+      "efst_code": "EFST_GEF_NOCTURN",
+      "functional_category": "負面／異常狀態",
+      "purpose_basis": "台版 StateIcon 對受術者列出限制、能力減少或持續損失；不以原始 COLOR_TITLE_BUFF 或職業關聯推定有利。",
+      "raw_effect_group": "增益",
+      "raw_title_color": "COLOR_TITLE_BUFF",
+      "review_status": "reviewed"
+    },
+    "1260": {
+      "client_descriptions": [
+        "礦工狂想曲",
+        "%s",
+        "物理抗性減少"
+      ],
+      "effect_basis": "台版 StateIcon 對受術者列出限制、能力減少或持續損失；不以原始 COLOR_TITLE_BUFF 或職業關聯推定有利。",
+      "effect_group": "減益",
+      "effect_note": "",
+      "efst_code": "EFST_AIN_RHAPSODY",
+      "functional_category": "負面／異常狀態",
+      "purpose_basis": "台版 StateIcon 對受術者列出限制、能力減少或持續損失；不以原始 COLOR_TITLE_BUFF 或職業關聯推定有利。",
+      "raw_effect_group": "增益",
+      "raw_title_color": "COLOR_TITLE_BUFF",
+      "review_status": "reviewed"
+    },
+    "1271": {
+      "client_descriptions": [
+        "咒力賦予",
+        "%s",
+        "特性魔法攻擊力增加"
+      ],
+      "efst_code": "EFST_SPELL_ENCHANTING",
+      "functional_category": "攻擊／傷害／命中",
+      "purpose_basis": "目前台版 StateIcon 完整說明；辨識持續效果，與消耗資源、瞬間解除狀態及英文子字串分開。"
+    },
+    "13": {
+      "client_descriptions": [
+        "敏捷降低(Decrease agility)",
+        "%s",
+        "移動速度降低",
+        "攻擊速度降低"
+      ],
+      "effect_basis": "台版 StateIcon 對受術者列出限制、能力減少或持續損失；不以原始 COLOR_TITLE_BUFF 或職業關聯推定有利。",
+      "effect_group": "減益",
+      "effect_note": "",
+      "efst_code": "EFST_DEC_AGI",
+      "functional_category": "負面／異常狀態",
+      "purpose_basis": "台版 StateIcon 對受術者列出限制、能力減少或持續損失；不以原始 COLOR_TITLE_BUFF 或職業關聯推定有利。",
+      "raw_effect_group": "增益",
+      "raw_title_color": "COLOR_TITLE_BUFF",
+      "review_status": "reviewed"
+    },
+    "1368": {
+      "client_descriptions": [
+        "神龜沙雕慶典",
+        "%s",
+        "SPL, WIS, STA增加"
+      ],
+      "efst_code": "EFST_SANDY_FESTIVAL",
+      "functional_category": "能力值",
+      "purpose_basis": "目前台版 StateIcon 完整說明；辨識持續效果，與消耗資源、瞬間解除狀態及英文子字串分開。"
+    },
+    "1398": {
+      "client_descriptions": [
+        "湯麵節-番茄湯麵",
+        "%s",
+        "變動詠唱，技能後延遲減少",
+        "攻擊速度增加(攻擊後延遲減少)"
+      ],
+      "effect_note": "",
+      "efst_code": "EFST_NOODLE_FES_3",
+      "functional_category": "消耗品／攻速／移速",
+      "purpose_basis": "既有消耗品索引明列攻速／移速；說明是詠唱與後延遲減少。冷卻關鍵字優先於消耗品覆核，造成用途交叉矛盾。",
+      "raw_effect_group": "增益",
+      "raw_title_color": "COLOR_TITLE_BUFF",
+      "review_status": "reviewed"
+    },
+    "1463": {
+      "client_descriptions": [
+        "露那佛瑪的祝福(速度)",
+        "%s",
+        "變動詠唱-10%",
+        "攻擊速度增加",
+        "(攻擊後延遲-10%)"
+      ],
+      "effect_note": "",
+      "efst_code": "EFST_CONTENTS_5",
+      "functional_category": "移動／行動／施法",
+      "purpose_basis": "本地說明為詠唱 -10%、攻擊速度增加及攻擊後延遲 -10%，並非等待再使用狀態。",
+      "raw_effect_group": "增益",
+      "raw_title_color": "COLOR_TITLE_BUFF",
+      "review_status": "reviewed"
+    },
+    "1495": {
+      "client_descriptions": [
+        "賦予次元魔力抗性 (1階段)",
+        "%s",
+        "已賦予對破壞的巴基力雷恩地區",
+        "次元魔力抗性。"
+      ],
+      "efst_code": "EFST_CONTENTS_37",
+      "functional_category": "屬性／抗性",
+      "purpose_basis": "目前台版 StateIcon 完整說明；辨識持續效果，與消耗資源、瞬間解除狀態及英文子字串分開。"
+    },
+    "1496": {
+      "client_descriptions": [
+        "賦予次元魔力抗性 (2階段)",
+        "%s",
+        "已賦予對被侵蝕的葛帔尼亞地區",
+        "次元魔力抗性。"
+      ],
+      "efst_code": "EFST_CONTENTS_38",
+      "functional_category": "屬性／抗性",
+      "purpose_basis": "目前台版 StateIcon 完整說明；辨識持續效果，與消耗資源、瞬間解除狀態及英文子字串分開。"
+    },
+    "17": {
+      "client_descriptions": [
+        "撒水祈福(Aspersio)",
+        "%s",
+        "在武器上賦予聖屬性"
+      ],
+      "efst_code": "EFST_ASPERSIO",
+      "functional_category": "屬性／抗性",
+      "purpose_basis": "目前台版 StateIcon 完整說明；辨識持續效果，與消耗資源、瞬間解除狀態及英文子字串分開。"
+    },
+    "24": {
+      "client_descriptions": [
+        "無視體型攻擊(Weapon Perfection)",
+        "%s",
+        "對小型, 中型, 大型怪物",
+        "各造成 100%的傷害"
+      ],
+      "efst_code": "EFST_WEAPONPERFECT",
+      "functional_category": "攻擊／傷害／命中",
+      "purpose_basis": "目前台版 StateIcon 完整說明；辨識持續效果，與消耗資源、瞬間解除狀態及英文子字串分開。"
+    },
+    "252": {
+      "aliases": [
+        "打怪時",
+        "EFST_CASH_RECEIVEITEM"
+      ],
+      "display_name_override": "基本掉寶率增加",
+      "efst_code": "EFST_CASH_RECEIVEITEM",
+      "name_basis": "將目前客戶端分行效果整理為可讀名稱，並非宣稱是官方獨立標題。相同名稱的不同 ID 保持獨立。"
+    },
+    "298": {
+      "client_descriptions": [
+        "%s",
+        "MSP增加, SP 消耗量降低"
+      ],
+      "efst_code": "EFST_TARGET_ASPD",
+      "functional_category": "恢復／資源",
+      "purpose_basis": "目前台版 StateIcon 完整說明；辨識持續效果，與消耗資源、瞬間解除狀態及英文子字串分開。"
+    },
+    "31": {
+      "client_descriptions": [
+        "能量外套 (Energy Coat)",
+        "比照目前的 SP 量",
+        "降低來自敵人的傷害"
+      ],
+      "efst_code": "EFST_ENERGYCOAT",
+      "functional_category": "防禦／減傷／迴避",
+      "purpose_basis": "目前台版 StateIcon 完整說明；辨識持續效果，與消耗資源、瞬間解除狀態及英文子字串分開。"
+    },
+    "312": {
+      "aliases": [
+        "打怪時",
+        "EFST_CASH_PLUSONLYJOBEXP"
+      ],
+      "display_name_override": "JOB 經驗值增加",
+      "efst_code": "EFST_CASH_PLUSONLYJOBEXP",
+      "name_basis": "將目前客戶端分行效果整理為可讀名稱，並非宣稱是官方獨立標題。相同名稱的不同 ID 保持獨立。"
+    },
+    "337": {
+      "client_descriptions": [
+        "武器抵禦 (WEAPON BLOCKING)",
+        "%s",
+        "遭受近身物理攻擊時",
+        "依機率傷害完全無效"
+      ],
+      "efst_code": "EFST_WEAPONBLOCKING",
+      "functional_category": "防禦／減傷／迴避",
+      "purpose_basis": "目前台版 StateIcon 完整說明；辨識持續效果，與消耗資源、瞬間解除狀態及英文子字串分開。"
+    },
+    "341": {
+      "client_descriptions": [
+        "劇毒武器",
+        "%s",
+        "近距離物理傷害增加",
+        "根據賦予的毒給予Buff",
+        "攻擊時讓目標被塗在武器上的毒而中毒"
+      ],
+      "efst_code": "EFST_POISONINGWEAPON",
+      "functional_category": "攻擊／傷害／命中",
+      "purpose_basis": "目前台版 StateIcon 完整說明；辨識持續效果，與消耗資源、瞬間解除狀態及英文子字串分開。"
+    },
+    "368": {
+      "client_descriptions": [
+        "塔奧群卡捲軸",
+        "%s",
+        "MHP增加",
+        "DEF/MDEF減少"
+      ],
+      "effect_basis": "台版說明同時含利弊、持續代價或隨機增減，不把單一片段當純增益。",
+      "effect_group": "開關／特殊",
+      "effect_note": "複合效果／需情境",
+      "efst_code": "EFST_MVPCARD_TAOGUNKA",
+      "raw_effect_group": "增益",
+      "raw_title_color": "COLOR_TITLE_BUFF",
+      "review_status": "reviewed"
+    },
+    "373": {
+      "client_descriptions": [
+        "過熱 (Over Heat)",
+        "魔導機甲過熱狀態",
+        "每秒減少一定量的 HP"
+      ],
+      "effect_basis": "台版 StateIcon 對受術者列出限制、能力減少或持續損失；不以原始 COLOR_TITLE_BUFF 或職業關聯推定有利。",
+      "effect_group": "減益",
+      "effect_note": "",
+      "efst_code": "EFST_OVERHEAT",
+      "functional_category": "負面／異常狀態",
+      "purpose_basis": "台版 StateIcon 對受術者列出限制、能力減少或持續損失；不以原始 COLOR_TITLE_BUFF 或職業關聯推定有利。",
+      "raw_effect_group": "增益",
+      "raw_title_color": "COLOR_TITLE_BUFF",
+      "review_status": "reviewed"
+    },
+    "374": {
+      "client_descriptions": [
+        "形態轉換",
+        "%s",
+        "可透過魔導戰甲的機身變換屬性"
+      ],
+      "efst_code": "EFST_SHAPESHIFT",
+      "functional_category": "屬性／抗性",
+      "purpose_basis": "目前台版 StateIcon 完整說明；辨識持續效果，與消耗資源、瞬間解除狀態及英文子字串分開。"
+    },
+    "383": {
+      "client_descriptions": [
+        "捕蟲堇妖果醬",
+        "%s",
+        "對史波浪壯麗原野的怪物",
+        "增加攻擊傷害"
+      ],
+      "efst_code": "EFST_SPL_ATK",
+      "functional_category": "攻擊／傷害／命中",
+      "purpose_basis": "目前台版 StateIcon 完整說明；辨識持續效果，與消耗資源、瞬間解除狀態及英文子字串分開。"
+    },
+    "384": {
+      "client_descriptions": [
+        "魯修拉的蜜醬",
+        "%s",
+        "遭受史波浪壯麗原野怪物的",
+        "物理, 魔法傷害會降低"
+      ],
+      "efst_code": "EFST_SPL_DEF",
+      "functional_category": "防禦／減傷／迴避",
+      "purpose_basis": "目前台版 StateIcon 完整說明；辨識持續效果，與消耗資源、瞬間解除狀態及英文子字串分開。"
+    },
+    "387": {
+      "aliases": [
+        "對史波浪壯麗原野怪物的",
+        "EFST_SPL_MATK"
+      ],
+      "client_descriptions": [
+        "",
+        "%s",
+        "對史波浪壯麗原野怪物的",
+        "魔法攻擊傷害增加"
+      ],
+      "display_name_override": "對史波浪壯麗原野魔物的魔法傷害增加",
+      "efst_code": "EFST_SPL_MATK",
+      "functional_category": "攻擊／傷害／命中",
+      "name_basis": "將目前客戶端分行效果整理為可讀名稱，並非宣稱是官方獨立標題。相同名稱的不同 ID 保持獨立。",
+      "purpose_basis": "目前台版 StateIcon 完整說明；辨識持續效果，與消耗資源、瞬間解除狀態及英文子字串分開。"
+    },
+    "393": {
+      "client_descriptions": [
+        "自動魅影念咒",
+        "%s",
+        "MATK增加",
+        "學習抄襲、繁殖",
+        "可使用魔法技能"
+      ],
+      "efst_code": "EFST_AUTOSHADOWSPELL",
+      "functional_category": "攻擊／傷害／命中",
+      "purpose_basis": "目前台版 StateIcon 完整說明；辨識持續效果，與消耗資源、瞬間解除狀態及英文子字串分開。"
+    },
+    "401": {
+      "client_descriptions": [
+        "謳歌",
+        "%s",
+        "處於黑暗與敏捷降低"
+      ],
+      "effect_basis": "台版 StateIcon 對受術者列出限制、能力減少或持續損失；不以原始 COLOR_TITLE_BUFF 或職業關聯推定有利。",
+      "effect_group": "減益",
+      "effect_note": "",
+      "efst_code": "EFST_ADORAMUS",
+      "functional_category": "負面／異常狀態",
+      "purpose_basis": "台版 StateIcon 對受術者列出限制、能力減少或持續損失；不以原始 COLOR_TITLE_BUFF 或職業關聯推定有利。",
+      "raw_effect_group": "增益",
+      "raw_title_color": "COLOR_TITLE_BUFF",
+      "review_status": "reviewed"
+    },
+    "403": {
+      "client_descriptions": [
+        "透明術",
+        "%s",
+        "於透明狀態下可進行攻擊",
+        "攻擊屬性變念屬性 1級",
+        "持續性的 SP降低",
+        "不可使用技能, 物品"
+      ],
+      "effect_basis": "台版說明同時含利弊、持續代價或隨機增減，不把單一片段當純增益。",
+      "effect_group": "開關／特殊",
+      "effect_note": "複合效果／需情境",
+      "efst_code": "EFST_INVISIBILITY",
+      "raw_effect_group": "增益",
+      "raw_title_color": "COLOR_TITLE_BUFF",
+      "review_status": "reviewed"
+    },
+    "407": {
+      "client_descriptions": [
+        "靈感",
+        "%s",
+        "命中率、素質上升",
+        "攻擊力、魔法攻擊力、MHP增加",
+        "特定Buff、異常狀態變無效",
+        "HP、SP持續減少"
+      ],
+      "effect_basis": "台版說明同時含利弊、持續代價或隨機增減，不把單一片段當純增益。",
+      "effect_group": "開關／特殊",
+      "effect_note": "複合效果／需情境",
+      "efst_code": "EFST_INSPIRATION",
+      "raw_effect_group": "增益",
+      "raw_title_color": "COLOR_TITLE_BUFF",
+      "review_status": "reviewed"
+    },
+    "421": {
+      "client_descriptions": [
+        "卸除配件",
+        "%s",
+        "不可裝置配件"
+      ],
+      "effect_basis": "STRIPACCESSARY 含 STR；本地說明為不可裝置配件，並非 STR／能力值增加。 台版 StateIcon 對受術者列出限制、能力減少或持續損失；不以原始 COLOR_TITLE_BUFF 或職業關聯推定有利。",
+      "effect_group": "減益",
+      "effect_note": "",
+      "efst_code": "EFST_STRIPACCESSARY",
+      "functional_category": "負面／異常狀態",
+      "purpose_basis": "STRIPACCESSARY 含 STR；本地說明為不可裝置配件，並非 STR／能力值增加。 台版 StateIcon 對受術者列出限制、能力減少或持續損失；不以原始 COLOR_TITLE_BUFF 或職業關聯推定有利。",
+      "raw_effect_group": "增益",
+      "raw_title_color": "COLOR_TITLE_BUFF",
+      "review_status": "reviewed"
+    },
+    "438": {
+      "client_descriptions": [
+        "羞怯一天的憂鬱",
+        "%s",
+        "固定詠唱增加、SP消耗增加。",
+        "迴避率與攻擊速度減少"
+      ],
+      "effect_basis": "台版 StateIcon 對受術者列出限制、能力減少或持續損失；不以原始 COLOR_TITLE_BUFF 或職業關聯推定有利。",
+      "effect_group": "減益",
+      "effect_note": "",
+      "efst_code": "EFST_GLOOMYDAY",
+      "functional_category": "負面／異常狀態",
+      "purpose_basis": "台版 StateIcon 對受術者列出限制、能力減少或持續損失；不以原始 COLOR_TITLE_BUFF 或職業關聯推定有利。",
+      "raw_effect_group": "增益",
+      "raw_title_color": "COLOR_TITLE_BUFF",
+      "review_status": "reviewed"
+    },
+    "450": {
+      "client_descriptions": [
+        "解析",
+        "%s",
+        "物理, 魔法防禦率降低"
+      ],
+      "effect_basis": "台版 StateIcon 對受術者列出限制、能力減少或持續損失；不以原始 COLOR_TITLE_BUFF 或職業關聯推定有利。",
+      "effect_group": "減益",
+      "effect_note": "",
+      "efst_code": "EFST_ANALYZE",
+      "functional_category": "負面／異常狀態",
+      "purpose_basis": "台版 StateIcon 對受術者列出限制、能力減少或持續損失；不以原始 COLOR_TITLE_BUFF 或職業關聯推定有利。",
+      "raw_effect_group": "增益",
+      "raw_title_color": "COLOR_TITLE_BUFF",
+      "review_status": "reviewed"
+    },
+    "452": {
+      "client_descriptions": [
+        "消沈旋律",
+        "%s",
+        "持續消耗SP。",
+        "INT減少。"
+      ],
+      "effect_basis": "台版 StateIcon 對受術者列出限制、能力減少或持續損失；不以原始 COLOR_TITLE_BUFF 或職業關聯推定有利。",
+      "effect_group": "減益",
+      "effect_note": "",
+      "efst_code": "EFST_MELODYOFSINK",
+      "functional_category": "負面／異常狀態",
+      "purpose_basis": "台版 StateIcon 對受術者列出限制、能力減少或持續損失；不以原始 COLOR_TITLE_BUFF 或職業關聯推定有利。",
+      "raw_effect_group": "增益",
+      "raw_title_color": "COLOR_TITLE_BUFF",
+      "review_status": "reviewed"
+    },
+    "453": {
+      "client_descriptions": [
+        "戰嚎的彼端",
+        "%s",
+        "MHP減少",
+        "STR減少"
+      ],
+      "effect_basis": "台版 StateIcon 對受術者列出限制、能力減少或持續損失；不以原始 COLOR_TITLE_BUFF 或職業關聯推定有利。",
+      "effect_group": "減益",
+      "effect_note": "",
+      "efst_code": "EFST_BEYOND_OF_WARCRY",
+      "functional_category": "負面／異常狀態",
+      "purpose_basis": "台版 StateIcon 對受術者列出限制、能力減少或持續損失；不以原始 COLOR_TITLE_BUFF 或職業關聯推定有利。",
+      "raw_effect_group": "增益",
+      "raw_title_color": "COLOR_TITLE_BUFF",
+      "review_status": "reviewed"
+    },
+    "463": {
+      "client_descriptions": [
+        "荊棘陷阱",
+        "%s",
+        "一點一點受傷害"
+      ],
+      "efst_code": "EFST_THORNS_TRAP",
+      "functional_category": "負面／異常狀態",
+      "purpose_basis": "目前台版 StateIcon 完整說明；辨識持續效果，與消耗資源、瞬間解除狀態及英文子字串分開。"
+    },
+    "476": {
+      "client_descriptions": [
+        "腹痛",
+        "%s",
+        "所有素質加重值降低",
+        "移動速度降低",
+        "每10秒出現一次坐下動作",
+        "每10秒消耗一定量的 SP"
+      ],
+      "effect_basis": "台版 StateIcon 對受術者列出限制、能力減少或持續損失；不以原始 COLOR_TITLE_BUFF 或職業關聯推定有利。",
+      "effect_group": "減益",
+      "effect_note": "",
+      "efst_code": "EFST_STOMACHACHE",
+      "functional_category": "負面／異常狀態",
+      "purpose_basis": "台版 StateIcon 對受術者列出限制、能力減少或持續損失；不以原始 COLOR_TITLE_BUFF 或職業關聯推定有利。",
+      "raw_effect_group": "增益",
+      "raw_title_color": "COLOR_TITLE_BUFF",
+      "review_status": "reviewed"
+    },
+    "50": {
+      "client_descriptions": [
+        "卸除武器",
+        "%s",
+        "無法裝置武器"
+      ],
+      "efst_code": "EFST_NOEQUIPWEAPON",
+      "functional_category": "負面／異常狀態",
+      "purpose_basis": "目前台版 StateIcon 完整說明；辨識持續效果，與消耗資源、瞬間解除狀態及英文子字串分開。"
+    },
+    "577": {
+      "client_descriptions": [
+        "鎮痛劑",
+        "%s",
+        "受到傷害時沒有動作延遲",
+        "受到的傷害減少"
+      ],
+      "effect_note": "",
+      "efst_code": "EFST_PAIN_KILLER",
+      "functional_category": "防禦／減傷／迴避",
+      "purpose_basis": "說明為受傷時沒有動作延遲及受傷減少；「延遲」是被否定的受擊動作，非技能再使用倒數。",
+      "raw_effect_group": "增益",
+      "raw_title_color": "COLOR_TITLE_BUFF",
+      "review_status": "reviewed"
+    },
+    "583": {
+      "client_descriptions": [
+        "ODINS_POWER",
+        "%s",
+        "ATK, MATK 增加",
+        "DEF, MDEF 減少"
+      ],
+      "effect_basis": "台版說明同時含利弊、持續代價或隨機增減，不把單一片段當純增益。",
+      "effect_group": "開關／特殊",
+      "effect_note": "複合效果／需情境",
+      "efst_code": "EFST_ODINS_POWER",
+      "raw_effect_group": "增益",
+      "raw_title_color": "COLOR_TITLE_BUFF",
+      "review_status": "reviewed"
+    },
+    "64": {
+      "aliases": [
+        "撒水祈福",
+        "EFST_WEAPONPROPERTY"
+      ],
+      "client_descriptions": [
+        "撒水祈福(Aspersio)",
+        "%s",
+        "在武器上賦予聖屬性"
+      ],
+      "display_name_override": "武器屬性附加",
+      "efst_code": "EFST_WEAPONPROPERTY",
+      "functional_category": "屬性／抗性",
+      "name_basis": "客戶端標題撒水祈福與通用EFST_WEAPONPROPERTY代碼存在語意落差；RRF有火肯貝特12114同target→64六次/兩份，伴隨技能來源，應使用通用顯示名並保留官方原名別名，不把任何一次都斷言為聖屬性。",
+      "purpose_basis": "目前台版 StateIcon 完整說明；辨識持續效果，與消耗資源、瞬間解除狀態及英文子字串分開。"
+    },
+    "659": {
+      "client_descriptions": [
+        "陰月的幻影",
+        "%s",
+        "HP和SP會隨機增加或減少",
+        "遭受魔法攻擊時,",
+        "有一半的傷害會轉移到對方身上"
+      ],
+      "effect_basis": "台版說明同時含利弊、持續代價或隨機增減，不把單一片段當純增益。",
+      "effect_group": "開關／特殊",
+      "effect_note": "複合效果／需情境",
+      "efst_code": "EFST_GENSOU",
+      "raw_effect_group": "增益",
+      "raw_title_color": "COLOR_TITLE_BUFF",
+      "review_status": "reviewed"
+    },
+    "662": {
+      "client_descriptions": [
+        "戰鬥靈藥",
+        "%s",
+        "ATK, MATK 增加",
+        "MHP, MSP減少"
+      ],
+      "effect_basis": "台版說明同時含利弊、持續代價或隨機增減，不把單一片段當純增益。",
+      "effect_group": "開關／特殊",
+      "effect_note": "複合效果／需情境",
+      "efst_code": "EFST_GM_BATTLE",
+      "raw_effect_group": "增益",
+      "raw_title_color": "COLOR_TITLE_BUFF",
+      "review_status": "reviewed"
+    },
+    "683": {
+      "aliases": [
+        "MHP和MSP",
+        "EFST_GLASTHEIM_HPSP"
+      ],
+      "display_name_override": "最大 HP／SP 增加",
+      "efst_code": "EFST_GLASTHEIM_HPSP",
+      "name_basis": "將目前客戶端分行效果整理為可讀名稱，並非宣稱是官方獨立標題。相同名稱的不同 ID 保持獨立。"
+    },
+    "702": {
+      "aliases": [
+        "對人類型魔物的",
+        "EFST_GEFFEN_MAGIC1"
+      ],
+      "display_name_override": "對人類型魔物的物理傷害增加",
+      "efst_code": "EFST_GEFFEN_MAGIC1",
+      "name_basis": "將目前客戶端分行效果整理為可讀名稱，並非宣稱是官方獨立標題。相同名稱的不同 ID 保持獨立。"
+    },
+    "703": {
+      "aliases": [
+        "對人類型魔物的",
+        "EFST_GEFFEN_MAGIC2"
+      ],
+      "display_name_override": "對人類型魔物的魔法傷害增加",
+      "efst_code": "EFST_GEFFEN_MAGIC2",
+      "name_basis": "將目前客戶端分行效果整理為可讀名稱，並非宣稱是官方獨立標題。相同名稱的不同 ID 保持獨立。"
+    },
+    "71": {
+      "client_descriptions": [
+        "刺客的黃昏",
+        "%s",
+        "隊員的攻擊速度增加",
+        "(攻擊後延遲減少)"
+      ],
+      "efst_code": "EFST_ASSASSINCROSS",
+      "functional_category": "移動／行動／施法",
+      "purpose_basis": "目前台版 StateIcon 完整說明；辨識持續效果，與消耗資源、瞬間解除狀態及英文子字串分開。"
+    },
+    "72": {
+      "client_descriptions": [
+        "布萊奇之詩",
+        "%s",
+        "隊員的變動詠唱減少",
+        "技能後延遲減少"
+      ],
+      "effect_note": "",
+      "efst_code": "EFST_POEMBRAGI",
+      "functional_category": "移動／行動／施法",
+      "purpose_basis": "本地說明為變動詠唱、技能後延遲減少，未描述等待技能再使用；不應僅因「延遲」成為冷卻狀態。",
+      "raw_effect_group": "增益",
+      "raw_title_color": "COLOR_TITLE_BUFF",
+      "review_status": "reviewed"
+    },
+    "78": {
+      "client_descriptions": [
+        "經驗值倍增",
+        "%s",
+        "打怪時",
+        "獲得之經驗值增加"
+      ],
+      "effect_basis": "EFST_RICHMANKIM 的台版說明為打怪時獲得經驗值增加；主要監控只是選取用途。",
+      "effect_group": "增益",
+      "effect_note": "",
+      "efst_code": "EFST_RICHMANKIM",
+      "raw_effect_group": "增益",
+      "raw_title_color": "COLOR_TITLE_BUFF",
+      "review_status": "reviewed"
+    },
+    "893": {
+      "client_descriptions": [
+        "俯身",
+        "%s",
+        "捲取身體蹲伏時所受的傷害減少"
+      ],
+      "effect_note": "",
+      "efst_code": "EFST_SU_STOOP",
+      "functional_category": "防禦／減傷／迴避",
+      "purpose_basis": "說明為所受傷害減少；「傷害」子字串先將防護效果送入攻擊分類。",
+      "raw_effect_group": "增益",
+      "raw_title_color": "COLOR_TITLE_BUFF",
+      "review_status": "reviewed"
+    },
+    "91": {
+      "client_descriptions": [
+        "水屬性附加 (Frost Weapon)",
+        "%s",
+        "在武器賦予水屬性"
+      ],
+      "efst_code": "EFST_PROPERTYWATER",
+      "functional_category": "屬性／抗性",
+      "purpose_basis": "目前台版 StateIcon 完整說明；辨識持續效果，與消耗資源、瞬間解除狀態及英文子字串分開。"
+    },
+    "919": {
+      "client_descriptions": [
+        "鮪魚派對",
+        "%s",
+        "防禦一定量的傷害"
+      ],
+      "efst_code": "EFST_TUNAPARTY",
+      "functional_category": "防禦／減傷／迴避",
+      "purpose_basis": "目前台版 StateIcon 完整說明；辨識持續效果，與消耗資源、瞬間解除狀態及英文子字串分開。"
+    },
+    "93": {
+      "client_descriptions": [
+        "地屬性附加 (Seismic Weapon)",
+        "%s",
+        "在武器上賦予地屬性"
+      ],
+      "efst_code": "EFST_PROPERTYGROUND",
+      "functional_category": "屬性／抗性",
+      "purpose_basis": "目前台版 StateIcon 完整說明；辨識持續效果，與消耗資源、瞬間解除狀態及英文子字串分開。"
+    }
+  }
+}
