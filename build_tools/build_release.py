@@ -52,7 +52,7 @@ def build(source_root: Path, output_directory: Path, version: str) -> dict:
     build_root.mkdir(parents=True)
     output_directory.mkdir(parents=True, exist_ok=True)
     hidden = [str(Path(relative).with_suffix('')).replace('\\', '.').replace('/', '.') for relative in SOURCE_FILES if relative.startswith(('monitor_core/', 'monitor_ui/', 'catalog/', 'app/')) and relative.endswith('.py') and (not relative.endswith('__init__.py'))]
-    arguments = ['-m', 'PyInstaller', '--noconfirm', '--clean', '--windowed', '--onedir', '--name', exe_name, '--distpath', str(build_root / 'dist'), '--workpath', str(build_root / 'work'), '--specpath', str(build_root / 'spec'), '--paths', str(source_root), '--additional-hooks-dir', str(source_root / 'pyinstaller_hooks')]
+    arguments = ['-m', 'PyInstaller', '--noconfirm', '--clean', '--windowed', '--onedir', '--icon', str(source_root / 'assets/app.ico'), '--name', exe_name, '--distpath', str(build_root / 'dist'), '--workpath', str(build_root / 'work'), '--specpath', str(build_root / 'spec'), '--paths', str(source_root), '--additional-hooks-dir', str(source_root / 'pyinstaller_hooks')]
     for name in ['tkinter', 'tkinter.ttk', 'tkinter.filedialog', *sorted(hidden)]:
         arguments += ['--hidden-import', name]
     arguments.append(str(source_root / 'rrf_monitor.py'))

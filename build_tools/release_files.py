@@ -15,6 +15,9 @@ SOURCE_FILES = {
     'app/bootstrap.py',
     'app/lifecycle.py',
     'app/version.py',
+    'assets/LICENSE-TK.txt',
+    'assets/README.md',
+    'assets/app.ico',
     'build_tools/build_catalog_manifest.py',
     'build_tools/build_release.py',
     'build_tools/build_reviewed_status_catalog.py',
@@ -72,7 +75,7 @@ DATA_FILES = {'data/' + name for name in ('EFSTIDs.lua', 'stateiconinfo.lua', 'r
 
 def package_file_mapping() -> dict[str, str]:
     """Map executable-package data to its verified source files."""
-    return {**{name: name for name in DATA_FILES}, '使用說明.txt': '使用說明.txt', 'data/資料來源.txt': 'DATA_SOURCES.md'}
+    return {**{name: name for name in DATA_FILES}, 'data/Tk圖示授權.txt': 'assets/LICENSE-TK.txt', '使用說明.txt': '使用說明.txt', 'data/資料來源.txt': 'DATA_SOURCES.md'}
 
 def source_archive_files(root: Path) -> set[str]:
     """Require complete buildable source, data and synthetic tests."""

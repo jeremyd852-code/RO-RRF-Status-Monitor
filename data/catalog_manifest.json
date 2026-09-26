@@ -1,6 +1,6 @@
 {
   "app_version": "1.6.7",
-  "built_at": "2026-09-27T01:23:00+08:00",
+  "built_at": "2026-09-27T02:06:40+08:00",
   "counts": {
     "items": 5160,
     "pet_food_item_ids": 58,
@@ -13,9 +13,9 @@
     "job_skill_catalog.json": "0ff12f25fbf4c959896fdf6bbe36b3a0cacd46b4375637221b7c70e0a3ff73b5",
     "job_status_index.json": "5c23307936c54d61d8ff9b09c289d1f77f9ee7213f58744ad141f3948e41d307",
     "pet_catalog.json": "f11a67035faa89f8e44c1e56605aaec3cde3fe288dddea368b807f698d106e60",
-    "runtime_status_index.json": "ebdbac8388f6fc6656c755d0d802b66655d45913f8079a970dbcd4318ca0458e",
+    "runtime_status_index.json": "894714960b754ac38aa4219dec211bc1413d690edc665d4e1cf7558cb91fed0f",
     "stateiconinfo.lua": "8d2c278ed5f5f767004fc9dd6a9831f54c34ed0245397a03ad9467f9fd7be22e",
-    "status_catalog.json": "1f3d7dff11b19151dffc8373feee2d780e2b3c54e8c935b991f1dbc0b1e5ca6b",
+    "status_catalog.json": "0277226d10e6d7916d4a117874fc793d09d38f58aab7241600c464e6341ecc0c",
     "status_classification.json": "7bdb1bb2e0e3694f9a2d080462b0fa80b244b55457a50837b082be7ba6bcc9a2",
     "status_reviews.json": "26a6c4a39a8bc211ca31d09f0d294740d51e373037a6878c6e5f3505a521e979",
     "可擴充資料庫.json": "584c1f67d61fc5a8fdd4d264582dad22e9c33bfe59d483d133b55b706c40ed88"
