@@ -1,7 +1,7 @@
 {
   "product_name": "RO-RRF即時狀態監控器",
-  "version": "1.6.6",
+  "version": "1.6.7",
   "executable": "RO-RRF即時狀態監控器.exe",
-  "package_name": "RO-RRF即時狀態監控器-v1.6.6",
+  "package_name": "RO-RRF即時狀態監控器-v1.6.7",
   "source_distribution": "source"
 }

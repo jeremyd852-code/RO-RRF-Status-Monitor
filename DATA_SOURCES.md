@@ -16,6 +16,10 @@
 
 `status_reviews.json` 保存按 ID 與 EFST 代碼核對的名稱、用途及效果性質修訂，逐筆附依據；`status_catalog.json` 保留原始值及採納結果。相關職業用於查找，不代表施法者身份。官方其他地區資料僅在效果方向與現有台版描述一致時作為佐證，不套用其他地區數值或宣稱台版逐技能實測。
 
+1.6.7 於 2026-09-27 重新讀取 9 月 22 日更新的台版資料，並核對 ROItemSearchApp、ROCalculator、rAthena、Hercules 的固定版本。後兩者為模擬器實作，用來交叉確認同一 EFST 符號的關聯與效果方向，並非台服官方伺服器原始碼。每筆採納記錄保留來源、版本及限制；名稱可信與效果可信分開處理。此批共採納 140 筆修訂，增加 80 筆可讀名稱、補齊 72 筆效果分類。
+
+重建狀態資料時，先執行 `build_tools/build_reviewed_status_catalog.py`，再產生 runtime index 與 manifest，避免新讀取的原始字色或不完整名稱覆蓋已覆核結果。正式打包已依此順序執行。
+
 物品名稱包含 2026-09-07 以台版客戶端 `System/iteminfo_new.lub` 的 `identifiedDisplayName` 欄位核對的更正及補充。RRF 僅用於離線比對 ID 與行為，原始錄影、人物名稱與聊天內容不隨附。名稱存在不表示已證明物品或技能一定觸發某個狀態。
 
 `pet_catalog.json` 另從客戶端 `petinfo.lub` 的中文種類表及逐隻食物表建立關聯，食物中文名稱核對 `iteminfo_new.lub`。未提供名稱或關聯的項目保留缺值；不以名稱猜測食物，也不包含寵物能力或進化資料。

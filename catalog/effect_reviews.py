@@ -6,6 +6,7 @@ Load once per catalog generation; applying reviews performs no filesystem I/O.
 
 from __future__ import annotations
 
+from copy import deepcopy
 from dataclasses import dataclass
 import json
 from pathlib import Path
@@ -15,6 +16,13 @@ from typing import Mapping, MutableMapping
 
 DEFAULT_DATA_DIR = Path(__file__).resolve().parents[1] / "data"
 EFFECT_GROUPS = frozenset({"增益", "減益", "開關／特殊", "未分類"})
+REVIEW_TEXT_FIELDS = (
+    "display_name_override", "functional_category", "effect_basis", "effect_note",
+    "raw_effect_group", "purpose_basis", "review_status", "name_basis", "name_note",
+    "source_limit",
+)
+REVIEW_TEXT_LIST_FIELDS = ("aliases", "client_descriptions", "client_skill_descriptions", "source_tags")
+REVIEW_EVIDENCE_FIELDS = ("source_evidence", "evidence_sources")
 
 
 @dataclass(frozen=True)
@@ -61,7 +69,8 @@ class EffectReviews:
         Metadata may use integer or JSON string IDs. If an incoming metadata row
         declares another EFST code, neither its name nor its effect is overwritten.
         Callers retain/report the returned conflicts instead of silently applying
-        a decision to a different state. Unreviewed/new IDs are left untouched.
+        a decision to a different state. A verified reviewed name/effect can add
+        missing metadata; unreviewed IDs and unrelated source links stay untouched.
         """
         codes = self.code_map if efst_codes is None else efst_codes
         conflicts = list(self.load_conflicts)
@@ -79,18 +88,33 @@ class EffectReviews:
             if not expected.startswith("EFST_") or expected != actual:
                 conflicts.append(ReviewConflict(status_id, "efst_code_mismatch", expected, actual))
                 continue
-            key = status_id if metadata is None or status_id in metadata else str(status_id)
+            key: int | str = status_id
+            if metadata is not None and status_id not in metadata:
+                key = (status_id if metadata and all(isinstance(value, int) for value in metadata)
+                       else str(status_id))
             current = metadata.get(key) if metadata is not None else None
+            if metadata is not None and key in metadata and not isinstance(current, Mapping):
+                conflicts.append(ReviewConflict(status_id, "invalid_metadata_record", expected, actual))
+                continue
             if isinstance(current, Mapping) and current.get("efst_code") not in (None, "", expected):
                 conflicts.append(ReviewConflict(status_id, "metadata_code_mismatch", expected,
                                                 str(current["efst_code"])))
                 continue
             group = review.get("effect_group")
-            if group is not None and (not isinstance(group, str) or group not in EFFECT_GROUPS):
+            if "effect_group" in review and (not isinstance(group, str) or group not in EFFECT_GROUPS):
                 conflicts.append(ReviewConflict(status_id, "invalid_effect_group", expected, actual))
                 continue
-            invalid_fields = [field for field in ("display_name_override", "functional_category")
+            invalid_fields = [field for field in REVIEW_TEXT_FIELDS
                               if field in review and not isinstance(review[field], str)]
+            if "raw_title_color" in review and review["raw_title_color"] is not None and not isinstance(review["raw_title_color"], str):
+                invalid_fields.append("raw_title_color")
+            for field in (*REVIEW_TEXT_LIST_FIELDS, *REVIEW_EVIDENCE_FIELDS):
+                if field not in review:
+                    continue
+                value = review[field]
+                item_type = str if field in REVIEW_TEXT_LIST_FIELDS else Mapping
+                if not isinstance(value, (list, tuple)) or any(not isinstance(item, item_type) for item in value):
+                    invalid_fields.append(field)
             if invalid_fields:
                 conflicts.append(ReviewConflict(status_id, "invalid_review_field", expected, actual))
                 continue
@@ -99,20 +123,27 @@ class EffectReviews:
                 names[status_id] = name
             if group is not None:
                 groups[status_id] = group
-            if isinstance(current, Mapping):
-                updated = dict(current)
-                for field in ("functional_category", "effect_group", "effect_basis", "effect_note",
-                              "raw_effect_group", "raw_title_color", "purpose_basis", "review_status"):
+            if metadata is not None and (isinstance(current, Mapping) or name or group is not None):
+                updated = dict(current) if isinstance(current, Mapping) else {
+                    "id": status_id,
+                    "efst_code": expected,
+                    "name": name or str(names.get(status_id, "")).strip() or expected,
+                    "effect_group": group if group is not None else groups.get(status_id, "未分類"),
+                }
+                for field in (*REVIEW_TEXT_FIELDS, "effect_group", "raw_title_color",
+                              "client_descriptions", "client_skill_descriptions", "source_tags",
+                              *REVIEW_EVIDENCE_FIELDS):
                     if field in review:
-                        updated[field] = review[field]
+                        updated[field] = deepcopy(review[field])
                 if name:
                     updated["name"] = updated["display_name_override"] = name
-                    old_aliases = current.get("aliases", [])
+                if name or "aliases" in review:
+                    old_aliases = updated.get("aliases", [])
                     reviewed_aliases = review.get("aliases", [])
                     updated["aliases"] = sorted({str(value) for value in
                         [*(old_aliases if isinstance(old_aliases, (list, tuple)) else []),
                          *(reviewed_aliases if isinstance(reviewed_aliases, (list, tuple)) else [])]
-                        if isinstance(value, str) and value and value != name})
+                        if isinstance(value, str) and value and value != updated.get("name")})
                 metadata[key] = updated
         return tuple(conflicts)
 

@@ -165,8 +165,9 @@ class AdoptedCatalogTests(unittest.TestCase):
         reviews.apply({},groups)
         for sid in (0,368,403,407,583,659,662,1203):
             self.assertEqual(groups[sid],'開關／特殊')
-        for sid in (107,112,125):
+        for sid in (107,112):
             self.assertEqual(groups[sid],'未分類')
+        self.assertEqual(groups[125],'減益')
 
     def test_focus_is_experience_benefit_not_ui_category(self):
         review=read('status_reviews.json')['statuses']['78']

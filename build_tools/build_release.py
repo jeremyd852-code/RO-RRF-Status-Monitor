@@ -46,7 +46,7 @@ def build(source_root: Path, output_directory: Path, version: str) -> dict:
         if not path.is_file():
             raise FileNotFoundError(relative)
     source_archive_files(source_root)
-    for script in ['build_runtime_status_index.py', 'build_catalog_manifest.py']:
+    for script in ['build_reviewed_status_catalog.py', 'build_runtime_status_index.py', 'build_catalog_manifest.py']:
         run([str(source_root / 'build_tools' / script)], source_root)
     build_root = assert_plain_path(source_root / 'build' / ('release-' + uuid.uuid4().hex[:12]), source_root)
     build_root.mkdir(parents=True)

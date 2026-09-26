@@ -1,10 +1,14 @@
-# RO RRF 即時狀態監控器 1.6.6
+# RO RRF 即時狀態監控器 1.6.7
 
 讀取本機台版 RO 的 RRF 錄影，顯示自身、目前隊伍的狀態，並監視自身寵物飽食度、提供聲音提醒。
 
+## 1.6.7 更新
+
+重新覆核未知狀態，補上 80 筆可讀名稱與 72 筆效果分類。名稱與效果分開確認；只有名稱能確認的項目繼續以「待確認」顯示，暫譯／暫稱保留標示。巧打列為減益，豐年頌列為增益，帶有持續代價的爆氣列為特殊。既有監控清單、卡片排列與提醒設定保留。
+
 ## 下載與使用
 
-1. 前往 **[版本下載](https://github.com/jeremyd852-code/RO-RRF-Status-Monitor/releases/latest)**，下載 `RO-RRF-Status-Monitor-v1.6.6.zip`。
+1. 前往 **[版本下載](https://github.com/jeremyd852-code/RO-RRF-Status-Monitor/releases/latest)**，下載 `RO-RRF-Status-Monitor-v1.6.7.zip`。
 2. 完整解壓縮，雙擊 `RO-RRF即時狀態監控器.exe`。不需另外安裝 Python。
 3. 在程式選擇 RRF 錄影來源，開始監控；自身與隊伍會從錄影資料自動辨識。
 
@@ -54,7 +58,7 @@
 
 ## 原始碼與建置
 
-一般使用者下載 EXE 使用包即可。GitHub 的 Code／Download ZIP 以及 `RO-RRF-Status-Monitor-v1.6.6-source.zip`，供原始碼保存與開發使用。
+一般使用者下載 EXE 使用包即可。GitHub 的 Code／Download ZIP 以及 `RO-RRF-Status-Monitor-v1.6.7-source.zip`，供原始碼保存與開發使用。
 
 原始碼執行需要 Python 3.10 以上及 Tk，可使用 `啟動監控器.vbs` 或 `啟動監控器.bat`。建置可使用 Python 3.13、PyInstaller，執行 `打包版本.ps1` 產生 EXE 使用包及獨立原始碼包；建置拒絕覆寫既有輸出。
 

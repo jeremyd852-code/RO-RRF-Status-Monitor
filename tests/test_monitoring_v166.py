@@ -183,7 +183,7 @@ er.load_effect_reviews=lambda path=None: er.EffectReviews(original.records,codes
 import rrf_monitor as m
 print(json.dumps({'group':m.status_group(13),'marker':m.RUNTIME_STATUS_METADATA[13].get('review_status'),'name':m.status_name(13)},ensure_ascii=False))
 '''
-        result=subprocess.run([sys.executable,'-B','-c',program],cwd=root,
+        result=subprocess.run([sys.executable,'-B','-X','utf8','-c',program],cwd=root,
             capture_output=True,text=True,encoding='utf-8',timeout=20)
         self.assertEqual(result.returncode,0,result.stderr)
         actual=json.loads(result.stdout)

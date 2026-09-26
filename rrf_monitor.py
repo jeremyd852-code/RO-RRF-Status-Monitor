@@ -3351,7 +3351,7 @@ class RrfMonitorApp(tk.Tk):
         super().__init__()
         self.startup_timeline = startup_timeline
         startup_timeline.mark('Tk')
-        self.title('RO RRF 即時狀態監控器｜1.6.6')
+        self.title('RO RRF 即時狀態監控器｜1.6.7')
         self.geometry('1080x780')
         self.minsize(900, 620)
         self.protocol('WM_DELETE_WINDOW', self.on_close)
